@@ -43,16 +43,18 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {article.tags?.map((tag) => (
-            <span 
-              key={tag} 
-              className="px-4 py-1.5 text-sm rounded-full bg-gray-50 text-gray-600"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        {article.tags && article.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {article.tags.map((tag) => (
+              <span 
+                key={tag} 
+                className="px-4 py-1.5 text-sm rounded-full bg-gray-50 text-gray-600"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className={cn(
           "space-y-8 overflow-hidden transition-all duration-300",
@@ -75,20 +77,24 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">Derived from:</h6>
-                        <div className="flex gap-2">
-                          {protein.derivedFrom?.map((source, i) => (
-                            <span key={i} className="text-sm bg-white px-3 py-1 rounded text-gray-600">
-                              {source}
-                            </span>
-                          ))}
+                      {protein.derivedFrom && protein.derivedFrom.length > 0 && (
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-700 mb-2">Derived from:</h6>
+                          <div className="flex gap-2">
+                            {protein.derivedFrom.map((source, i) => (
+                              <span key={i} className="text-sm bg-white px-3 py-1 rounded text-gray-600">
+                                {source}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">Production:</h6>
-                        <p className="text-sm text-gray-600">{protein.production}</p>
-                      </div>
+                      )}
+                      {protein.production && (
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-700 mb-2">Production:</h6>
+                          <p className="text-sm text-gray-600">{protein.production}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -107,7 +113,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                       </p>
                     </div>
                     
-                    {material.properties && (
+                    {material.properties && material.properties.length > 0 && (
                       <div>
                         <h6 className="text-sm font-medium text-gray-700 mb-2">Key Properties:</h6>
                         <div className="flex flex-wrap gap-2">
@@ -125,9 +131,9 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             )}
           </div>
 
-          {(article.methods || article.analysisTools) && (
+          {(article.methods?.length > 0 || article.analysisTools?.length > 0) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
-              {article.methods && (
+              {article.methods && article.methods.length > 0 && (
                 <div>
                   <h4 className="text-xl font-semibold text-gray-900 mb-4">Methods</h4>
                   <ul className="space-y-2">
@@ -138,7 +144,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                 </div>
               )}
               
-              {article.analysisTools && (
+              {article.analysisTools && article.analysisTools.length > 0 && (
                 <div>
                   <h4 className="text-xl font-semibold text-gray-900 mb-4">Analysis Techniques</h4>
                   <ul className="space-y-2">
@@ -164,3 +170,4 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
     </article>
   );
 };
+

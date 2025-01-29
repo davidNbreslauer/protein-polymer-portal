@@ -12,34 +12,40 @@ export type Database = {
       articles: {
         Row: {
           abstract: string
+          analysis_tools: string[] | null
           authors: string[] | null
           conclusions: string | null
           methods: string[] | null
           pmid: string
           results: Json | null
           summary: string | null
+          tags: string[] | null
           timestamp: string | null
           title: string
         }
         Insert: {
           abstract: string
+          analysis_tools?: string[] | null
           authors?: string[] | null
           conclusions?: string | null
           methods?: string[] | null
           pmid: string
           results?: Json | null
           summary?: string | null
+          tags?: string[] | null
           timestamp?: string | null
           title: string
         }
         Update: {
           abstract?: string
+          analysis_tools?: string[] | null
           authors?: string[] | null
           conclusions?: string | null
           methods?: string[] | null
           pmid?: string
           results?: Json | null
           summary?: string | null
+          tags?: string[] | null
           timestamp?: string | null
           title?: string
         }
@@ -93,6 +99,7 @@ export type Database = {
           key_properties: string[] | null
           name: string
           potential_applications: string[] | null
+          properties: string[] | null
         }
         Insert: {
           article_pmid?: string | null
@@ -103,6 +110,7 @@ export type Database = {
           key_properties?: string[] | null
           name: string
           potential_applications?: string[] | null
+          properties?: string[] | null
         }
         Update: {
           article_pmid?: string | null
@@ -113,6 +121,7 @@ export type Database = {
           key_properties?: string[] | null
           name?: string
           potential_applications?: string[] | null
+          properties?: string[] | null
         }
         Relationships: [
           {
@@ -132,6 +141,7 @@ export type Database = {
           id: string
           key_properties: string[] | null
           name: string
+          production: string | null
           production_method: string | null
           role_in_study: string | null
           tags: Json | null
@@ -144,6 +154,7 @@ export type Database = {
           id?: string
           key_properties?: string[] | null
           name: string
+          production?: string | null
           production_method?: string | null
           role_in_study?: string | null
           tags?: Json | null
@@ -156,6 +167,7 @@ export type Database = {
           id?: string
           key_properties?: string[] | null
           name?: string
+          production?: string | null
           production_method?: string | null
           role_in_study?: string | null
           tags?: Json | null
