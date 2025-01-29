@@ -23,11 +23,13 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Header searchQuery={searchQuery} onSearchChange={handleSearch} />
 
-      <main className="pt-[160px] pb-8 px-4 max-w-7xl mx-auto">
+      <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
         <div className="flex gap-6">
-          <Sidebar onFilterChange={handleFilterChange} />
+          <div className="pt-4">
+            <Sidebar onFilterChange={handleFilterChange} />
+          </div>
 
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 space-y-4 pt-4">
             {isLoading && (
               <div className="text-center py-8">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
