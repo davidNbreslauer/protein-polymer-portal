@@ -7,9 +7,9 @@ interface FilterOptions {
   proteinFamily?: string[];
 }
 
-const ARTICLES_PER_PAGE = 10; // Reduced from 20 to 10 to improve performance
+const ARTICLES_PER_PAGE = 10;
 
-const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}) => {
+const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0) => {
   try {
     let query = supabase
       .from('articles')
@@ -21,7 +21,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         timestamp
       `)
       .order('timestamp', { ascending: false })
-      .range(0, ARTICLES_PER_PAGE - 1);
+      .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
 
     // Apply text search filter if present
     if (searchQuery) {
@@ -79,12 +79,12 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
   }
 };
 
-export const useArticles = (searchQuery: string, filters: FilterOptions = {}) => {
+export const useArticles = (searchQuery: string, filters: FilterOptions = {}, page: number = 0) => {
   return useQuery({
-    queryKey: ['articles', searchQuery, filters],
-    queryFn: () => fetchArticles(searchQuery, filters),
+    queryKey: ['articles', searchQuery, filters, page],
+    queryFn: () => fetchArticles(searchQuery, filters, page),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    retry: 3, // Increased retries
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000), // Exponential backoff
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),
   });
 };

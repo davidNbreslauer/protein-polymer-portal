@@ -4,19 +4,34 @@ import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { useArticles } from "@/hooks/useArticles";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ proteinFamily: [] as string[] });
+  const [currentPage, setCurrentPage] = useState(0);
   
-  const { data: articles, isLoading, error } = useArticles(searchQuery, filters);
+  const { data: articles, isLoading, error } = useArticles(searchQuery, filters, currentPage);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(0); // Reset to first page on new search
   };
 
   const handleFilterChange = (newFilters: { proteinFamily: string[] }) => {
     setFilters(newFilters);
+    setCurrentPage(0); // Reset to first page on filter change
+  };
+
+  const handleNextPage = () => {
+    if (articles && articles.length === 10) { // If we have a full page, there might be more
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(0, prev - 1));
   };
 
   return (
@@ -52,6 +67,34 @@ const Index = () => {
             {articles?.map((article) => (
               <ArticleCard key={article.pmid} article={article} />
             ))}
+
+            {articles && articles.length > 0 && (
+              <div className="flex justify-between items-center pt-6">
+                <Button 
+                  variant="outline"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+
+                <span className="text-sm text-gray-500">
+                  Page {currentPage + 1}
+                </span>
+
+                <Button 
+                  variant="outline"
+                  onClick={handleNextPage}
+                  disabled={articles.length < 10}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </main>
