@@ -5,6 +5,7 @@ export type Article = {
   abstract: string;
   authors: string[];
   timestamp: string;
+  summary?: string;
   tags?: string[];
   proteins?: {
     name: string;
@@ -21,3 +22,4 @@ export type Article = {
   analysisTools?: string[];
   results?: string;
 };
+
