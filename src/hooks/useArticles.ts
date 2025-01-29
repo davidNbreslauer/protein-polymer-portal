@@ -8,10 +8,28 @@ interface FilterOptions {
 }
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}) => {
+  // First, if we have protein family filters, get the relevant PMIDs
+  let pmidsToFilter: string[] = [];
+  if (filters.proteinFamily && filters.proteinFamily.length > 0) {
+    const { data: filteredPmids } = await supabase
+      .from('facets')
+      .select('article_pmid')
+      .contains('protein_family', filters.proteinFamily);
+    pmidsToFilter = filteredPmids?.map(row => row.article_pmid) || [];
+    if (pmidsToFilter.length === 0) {
+      return []; // No matches found for the protein family filter
+    }
+  }
+
+  // Build the main query
   let query = supabase
     .from('articles')
     .select(`
-      *,
+      pmid,
+      title,
+      abstract,
+      authors,
+      timestamp,
       proteins (
         name,
         description
@@ -24,22 +42,17 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         protein_family
       )
     `)
-    .order('timestamp', { ascending: false });
+    .order('timestamp', { ascending: false })
+    .limit(50); // Add a limit to prevent timeouts
 
+  // Apply text search filter if present
   if (searchQuery) {
     query = query.or(`title.ilike.%${searchQuery}%, abstract.ilike.%${searchQuery}%`);
   }
 
-  if (filters.proteinFamily && filters.proteinFamily.length > 0) {
-    const { data: filteredPmids } = await supabase
-      .from('facets')
-      .select('article_pmid')
-      .contains('protein_family', filters.proteinFamily);
-    
-    const pmids = filteredPmids?.map(row => row.article_pmid) || [];
-    if (pmids.length > 0) {
-      query = query.in('pmid', pmids);
-    }
+  // Apply PMID filter if we have protein family filters
+  if (pmidsToFilter.length > 0) {
+    query = query.in('pmid', pmidsToFilter);
   }
 
   const { data, error } = await query;
