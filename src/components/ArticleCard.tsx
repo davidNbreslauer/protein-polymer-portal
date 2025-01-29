@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ExternalLink } from "lucide-react";
 import type { Article } from "@/types/article";
 
 interface ArticleCardProps {
@@ -14,39 +14,40 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <article className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
       <div className="p-6 space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h3 className="font-medium text-gray-900">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1 flex-1">
+            <h3 className="font-medium text-gray-900 text-lg">
               {article.title}
             </h3>
             <p className="text-sm text-gray-500">
               {article.authors?.join(', ')}
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs bg-gray-900 px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5">
               PMID: {article.pmid}
+              <ExternalLink className="w-3.5 h-3.5" />
             </span>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 hover:bg-gray-100 rounded-full"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900"
             >
-              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+              {isExpanded ? 'Less' : 'More'}
             </button>
           </div>
         </div>
 
         <div>
-          <p className="text-sm text-gray-600">
+          <p className="text-gray-600 leading-relaxed">
             {article.abstract.slice(0, 200)}...
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {["Tissue Engineering", "Drug Delivery", "Elastomeric proteins"].map((tag) => (
+          {article.tags?.map((tag) => (
             <span 
               key={tag} 
-              className="px-2.5 py-1 text-xs rounded-full bg-gray-50 text-gray-600 border border-gray-200"
+              className="px-4 py-1.5 text-sm rounded-full bg-gray-50 text-gray-600"
             >
               {tag}
             </span>
@@ -54,38 +55,110 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
         </div>
 
         <div className={cn(
-          "space-y-6 overflow-hidden transition-all duration-300",
-          isExpanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+          "space-y-8 overflow-hidden transition-all duration-300",
+          isExpanded ? "max-h-[2000px] opacity-100 pt-4" : "max-h-0 opacity-0"
         )}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
             {article.proteins && article.proteins.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-medium text-gray-900">Proteins</h4>
+              <div className="space-y-6">
+                <h4 className="text-xl font-semibold text-gray-900">Proteins</h4>
                 {article.proteins.map((protein, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <h5 className="text-sm font-medium">{protein.name}</h5>
-                    <p className="text-sm text-gray-600">
-                      {protein.description}
-                    </p>
+                  <div key={idx} className="bg-gray-50 rounded-lg p-6 space-y-4">
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-start">
+                        <h5 className="text-lg font-medium text-gray-900">{protein.name}</h5>
+                        <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">Engineered</span>
+                      </div>
+                      <p className="text-gray-600">
+                        {protein.description}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">Derived from:</h6>
+                        <div className="flex gap-2">
+                          {protein.derivedFrom?.map((source, i) => (
+                            <span key={i} className="text-sm bg-white px-3 py-1 rounded text-gray-600">
+                              {source}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">Production:</h6>
+                        <p className="text-sm text-gray-600">{protein.production}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
 
             {article.materials && article.materials.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-medium text-gray-900">Materials</h4>
+              <div className="space-y-6">
+                <h4 className="text-xl font-semibold text-gray-900">Materials</h4>
                 {article.materials.map((material, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <h5 className="text-sm font-medium">{material.name}</h5>
-                    <p className="text-sm text-gray-600">
-                      {material.description}
-                    </p>
+                  <div key={idx} className="bg-gray-50 rounded-lg p-6 space-y-4">
+                    <div className="space-y-2">
+                      <h5 className="text-lg font-medium text-gray-900">{material.name}</h5>
+                      <p className="text-gray-600">
+                        {material.description}
+                      </p>
+                    </div>
+                    
+                    {material.properties && (
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">Key Properties:</h6>
+                        <div className="flex flex-wrap gap-2">
+                          {material.properties.map((prop, i) => (
+                            <span key={i} className="text-sm bg-white px-3 py-1 rounded text-gray-600">
+                              {prop}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </div>
+
+          {(article.methods || article.analysisTools) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
+              {article.methods && (
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Methods</h4>
+                  <ul className="space-y-2">
+                    {article.methods.map((method, idx) => (
+                      <li key={idx} className="text-gray-600">• {method}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {article.analysisTools && (
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Analysis Techniques</h4>
+                  <ul className="space-y-2">
+                    {article.analysisTools.map((tool, idx) => (
+                      <li key={idx} className="text-gray-600">• {tool}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {article.results && (
+            <div className="border-t pt-8">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Results & Conclusions</h4>
+              <p className="text-gray-600 leading-relaxed">
+                {article.results}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </article>
