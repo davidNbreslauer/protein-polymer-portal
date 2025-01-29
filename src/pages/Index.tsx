@@ -15,6 +15,7 @@ const Index = () => {
   const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage);
   const articles = data?.articles || [];
   const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / 10);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -87,7 +88,7 @@ const Index = () => {
                 </Button>
 
                 <span className="text-sm text-gray-500">
-                  Page {currentPage + 1}
+                  Page {currentPage + 1} of {totalPages}
                 </span>
 
                 <Button 
