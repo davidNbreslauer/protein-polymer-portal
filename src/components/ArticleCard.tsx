@@ -162,11 +162,11 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             </div>
           )}
 
-          {article.results && (
+          {article.conclusions && (
             <div className="border-t pt-8">
               <h4 className="text-xl font-semibold text-gray-900 mb-4">Results & Conclusions</h4>
               <p className="text-gray-600 leading-relaxed">
-                {article.results}
+                {article.conclusions}
               </p>
             </div>
           )}

@@ -21,5 +21,5 @@ export type Article = {
   methods?: string[];
   analysisTools?: string[];
   results?: string;
+  conclusions?: string;
 };
-

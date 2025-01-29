@@ -26,7 +26,8 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         abstract,
         authors,
         timestamp,
-        summary
+        summary,
+        conclusions
       `)
       .order('timestamp', { ascending: false })
       .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
