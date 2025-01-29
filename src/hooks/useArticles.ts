@@ -11,6 +11,13 @@ const ARTICLES_PER_PAGE = 10;
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0) => {
   try {
+    // Fetch total count first
+    const { data: countData, error: countError } = await supabase
+      .rpc('count_filtered_articles', { search_query: searchQuery });
+    
+    if (countError) throw countError;
+    const totalCount = countData || 0;
+
     let query = supabase
       .from('articles')
       .select(`
@@ -32,7 +39,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     const { data: baseArticles, error: baseError } = await query;
     
     if (baseError) throw baseError;
-    if (!baseArticles) return [];
+    if (!baseArticles) return { articles: [], totalCount: 0 };
 
     // Then fetch related data for these articles
     const articlePromises = baseArticles.map(async (article) => {
@@ -59,11 +66,11 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       };
     });
 
-    const enrichedArticles = await Promise.all(articlePromises);
+    let enrichedArticles = await Promise.all(articlePromises);
 
     // Apply protein family filter if present
     if (filters.proteinFamily?.length) {
-      return enrichedArticles.filter(article => 
+      enrichedArticles = enrichedArticles.filter(article => 
         article.facets.some(facet => 
           facet.protein_family?.some(family => 
             filters.proteinFamily?.includes(family)
@@ -72,7 +79,10 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       );
     }
 
-    return enrichedArticles as Article[];
+    return {
+      articles: enrichedArticles as Article[],
+      totalCount
+    };
   } catch (error) {
     console.error('Error fetching articles:', error);
     throw error;

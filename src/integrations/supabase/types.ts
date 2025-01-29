@@ -176,7 +176,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      count_filtered_articles: {
+        Args: {
+          search_query: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
