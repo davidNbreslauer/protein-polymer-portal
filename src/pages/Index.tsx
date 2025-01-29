@@ -7,11 +7,16 @@ import { useArticles } from "@/hooks/useArticles";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({ proteinFamily: [] as string[] });
   
-  const { data: articles, isLoading, error } = useArticles(searchQuery);
+  const { data: articles, isLoading, error } = useArticles(searchQuery, filters);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+  };
+
+  const handleFilterChange = (newFilters: { proteinFamily: string[] }) => {
+    setFilters(newFilters);
   };
 
   return (
@@ -20,7 +25,7 @@ const Index = () => {
 
       <main className="pt-36 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Sidebar />
+          <Sidebar onFilterChange={handleFilterChange} />
 
           <div className="md:col-span-3 space-y-4">
             {isLoading && (
@@ -38,7 +43,7 @@ const Index = () => {
 
             {articles?.length === 0 && !isLoading && (
               <div className="text-center py-8">
-                <p className="text-gray-500">No articles found matching your search criteria.</p>
+                <p className="text-gray-500">No articles found matching your criteria.</p>
               </div>
             )}
 

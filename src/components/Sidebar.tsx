@@ -1,11 +1,36 @@
 
-export const Sidebar = () => {
+import { useState } from "react";
+
+interface SidebarProps {
+  onFilterChange: (filters: { proteinFamily: string[] }) => void;
+}
+
+export const Sidebar = ({ onFilterChange }: SidebarProps) => {
+  const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
+
+  const handleProteinFamilyChange = (family: string) => {
+    const updatedFamilies = selectedProteinFamilies.includes(family)
+      ? selectedProteinFamilies.filter(f => f !== family)
+      : [...selectedProteinFamilies, family];
+    
+    setSelectedProteinFamilies(updatedFamilies);
+    onFilterChange({ proteinFamily: updatedFamilies });
+  };
+
+  const handleClearAll = () => {
+    setSelectedProteinFamilies([]);
+    onFilterChange({ proteinFamily: [] });
+  };
+
   return (
     <aside className="md:col-span-1 space-y-6">
       <div className="bg-white rounded-lg shadow-sm border p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-medium text-gray-900">Filters</h2>
-          <button className="text-sm text-primary hover:text-primary/80">
+          <button 
+            className="text-sm text-primary hover:text-primary/80"
+            onClick={handleClearAll}
+          >
             Clear all
           </button>
         </div>
@@ -34,6 +59,8 @@ export const Sidebar = () => {
                 <label key={family} className="flex items-center">
                   <input
                     type="checkbox"
+                    checked={selectedProteinFamilies.includes(family)}
+                    onChange={() => handleProteinFamilyChange(family)}
                     className="rounded border-gray-300 text-primary 
                              focus:ring-primary/20 cursor-pointer"
                   />
