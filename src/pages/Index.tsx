@@ -22,8 +22,8 @@ type Article = {
   }[];
 };
 
-const fetchArticles = async () => {
-  const { data, error } = await supabase
+const fetchArticles = async (searchQuery: string = '') => {
+  let query = supabase
     .from('articles')
     .select(`
       *,
@@ -38,17 +38,33 @@ const fetchArticles = async () => {
     `)
     .order('timestamp', { ascending: false });
 
+  if (searchQuery) {
+    query = query.or(
+      `title.ilike.%${searchQuery}%,` +
+      `abstract.ilike.%${searchQuery}%,` +
+      `proteins.name.ilike.%${searchQuery}%,` +
+      `materials.name.ilike.%${searchQuery}%`
+    );
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data as Article[];
 };
 
 const Index = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const { data: articles, isLoading, error } = useQuery({
-    queryKey: ['articles'],
-    queryFn: fetchArticles,
+    queryKey: ['articles', searchQuery],
+    queryFn: () => fetchArticles(searchQuery),
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,6 +87,8 @@ const Index = () => {
               </div>
               <input
                 type="text"
+                value={searchQuery}
+                onChange={handleSearch}
                 placeholder="Search by protein name, application, or properties..."
                 className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg 
                          bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-primary/20 
@@ -146,6 +164,12 @@ const Index = () => {
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
                 Error loading articles. Please try again later.
+              </div>
+            )}
+
+            {articles?.length === 0 && !isLoading && (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No articles found matching your search criteria.</p>
               </div>
             )}
 
