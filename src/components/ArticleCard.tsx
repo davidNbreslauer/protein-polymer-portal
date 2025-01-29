@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { MoreHorizontal, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { Article } from "@/types/article";
 
 interface ArticleCardProps {
@@ -24,10 +24,15 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs bg-gray-900 px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5">
+            <a
+              href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs bg-gray-900 px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5 hover:bg-gray-800 transition-colors"
+            >
               PMID: {article.pmid}
               <ExternalLink className="w-3.5 h-3.5" />
-            </span>
+            </a>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-sm font-medium text-gray-600 hover:text-gray-900"
@@ -170,4 +175,3 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
     </article>
   );
 };
-
