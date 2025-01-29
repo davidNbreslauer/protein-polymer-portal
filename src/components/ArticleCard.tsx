@@ -44,7 +44,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
 
         <div>
           <p className="text-gray-600 leading-relaxed">
-            {article.abstract.slice(0, 200)}...
+            {article.summary || "No summary available."}
           </p>
         </div>
 
