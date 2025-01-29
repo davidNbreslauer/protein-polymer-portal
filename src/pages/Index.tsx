@@ -66,7 +66,7 @@ const Index = () => {
                 {articles.length === 0 ? (
                   "No articles found matching your criteria."
                 ) : (
-                  `Showing ${articles.length} article${articles.length === 1 ? '' : 's'} (page ${currentPage + 1}) of ${totalCount} total result${totalCount === 1 ? '' : 's'}`
+                  `Showing ${articles.length} article${articles.length === 1 ? '' : 's'} of ${totalCount} total result${totalCount === 1 ? '' : 's'}`
                 )}
               </div>
             )}
