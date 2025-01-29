@@ -2,9 +2,53 @@
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+// Type for our article data
+type Article = {
+  pmid: string;
+  title: string;
+  abstract: string;
+  authors: string[];
+  timestamp: string;
+  proteins?: {
+    name: string;
+    description: string;
+  }[];
+  materials?: {
+    name: string;
+    description: string;
+  }[];
+};
+
+const fetchArticles = async () => {
+  const { data, error } = await supabase
+    .from('articles')
+    .select(`
+      *,
+      proteins (
+        name,
+        description
+      ),
+      materials (
+        name,
+        description
+      )
+    `)
+    .order('timestamp', { ascending: false });
+
+  if (error) throw error;
+  return data as Article[];
+};
 
 const Index = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  const { data: articles, isLoading, error } = useQuery({
+    queryKey: ['articles'],
+    queryFn: fetchArticles,
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,75 +136,87 @@ const Index = () => {
 
           {/* Results */}
           <div className="md:col-span-3 space-y-4">
-            {/* Example Result Card */}
-            <article className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Synthesis and characterization of recombinant abductin-based proteins
-                    </h3>
-                    <p className="text-sm text-gray-500">Zhang Y ... Wilson KR</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                      PMID: 24147646
-                    </span>
-                    <button
-                      onClick={() => setIsExpanded(!isExpanded)}
-                      className="text-sm text-primary hover:text-primary/80"
-                    >
-                      {isExpanded ? "Less" : "More"}
-                    </button>
-                  </div>
-                </div>
-
-                <p className="mt-2 text-sm text-gray-600">
-                  Researchers successfully engineered recombinant proteins based on abductin...
-                </p>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {["Tissue Engineering", "Drug Delivery", "Elastomeric proteins"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full
-                               text-xs font-medium bg-primary/5 text-primary"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className={cn(
-                  "mt-6 space-y-6 overflow-hidden transition-all duration-300",
-                  isExpanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
-                )}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Proteins Section */}
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-gray-900">Proteins</h4>
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-medium">RE15mR</h5>
-                        <p className="text-sm text-gray-600">
-                          26 kDa recombinant protein combining resilin and elastin sequences with RGD motifs
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Materials Section */}
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-gray-900">Materials</h4>
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-medium">RE15mR-enriched bioink</h5>
-                        <p className="text-sm text-gray-600">
-                          Bioprinting ink enhanced with recombinant protein
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {isLoading && (
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Loading articles...</p>
               </div>
-            </article>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+                Error loading articles. Please try again later.
+              </div>
+            )}
+
+            {articles?.map((article) => (
+              <article key={article.pmid} className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                <div className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {article.title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {article.authors?.join(', ')}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        PMID: {article.pmid}
+                      </span>
+                      <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="text-sm text-primary hover:text-primary/80"
+                      >
+                        {isExpanded ? "Less" : "More"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="mt-2 text-sm text-gray-600">
+                    {article.abstract.slice(0, 200)}...
+                  </p>
+
+                  <div className={cn(
+                    "mt-6 space-y-6 overflow-hidden transition-all duration-300",
+                    isExpanded ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+                  )}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Proteins Section */}
+                      {article.proteins && article.proteins.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900">Proteins</h4>
+                          {article.proteins.map((protein, idx) => (
+                            <div key={idx} className="space-y-2">
+                              <h5 className="text-sm font-medium">{protein.name}</h5>
+                              <p className="text-sm text-gray-600">
+                                {protein.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Materials Section */}
+                      {article.materials && article.materials.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-gray-900">Materials</h4>
+                          {article.materials.map((material, idx) => (
+                            <div key={idx} className="space-y-2">
+                              <h5 className="text-sm font-medium">{material.name}</h5>
+                              <p className="text-sm text-gray-600">
+                                {material.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </main>
