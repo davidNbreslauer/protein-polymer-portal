@@ -16,10 +16,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
       <div className="p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1 flex-1">
-            <h3 className="font-medium text-gray-900 text-lg">
+            <h3 className="font-medium text-gray-900 text-base">
               {article.title}
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500">
               {article.authors?.join(', ')}
             </p>
           </div>
@@ -35,7 +35,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             </a>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="text-xs font-medium text-gray-600 hover:text-gray-900"
             >
               {isExpanded ? 'Less' : 'More'}
             </button>
@@ -43,7 +43,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
         </div>
 
         <div>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             {article.summary || "No summary available."}
           </p>
         </div>
@@ -53,7 +53,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             {article.tags.map((tag) => (
               <span 
                 key={tag} 
-                className="px-4 py-1.5 text-sm rounded-full bg-gray-50 text-gray-600"
+                className="px-3 py-1 text-xs rounded-full bg-gray-50 text-gray-600"
               >
                 {tag}
               </span>
@@ -68,15 +68,15 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
             {article.proteins && article.proteins.length > 0 && (
               <div className="space-y-6">
-                <h4 className="text-xl font-semibold text-gray-900">Proteins</h4>
+                <h4 className="text-lg font-semibold text-gray-900">Proteins</h4>
                 {article.proteins.map((protein, idx) => (
                   <div key={idx} className="bg-gray-50 rounded-lg p-6 space-y-4">
                     <div className="space-y-1">
                       <div className="flex justify-between items-start">
-                        <h5 className="text-lg font-medium text-gray-900">{protein.name}</h5>
-                        <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">Engineered</span>
+                        <h5 className="text-base font-medium text-gray-900">{protein.name}</h5>
+                        <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">Engineered</span>
                       </div>
-                      <p className="text-gray-600">
+                      <p className="text-sm text-gray-600">
                         {protein.description}
                       </p>
                     </div>
@@ -84,10 +84,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                     <div className="grid grid-cols-2 gap-4">
                       {protein.derivedFrom && protein.derivedFrom.length > 0 && (
                         <div>
-                          <h6 className="text-sm font-medium text-gray-700 mb-2">Derived from:</h6>
+                          <h6 className="text-xs font-medium text-gray-700 mb-2">Derived from:</h6>
                           <div className="flex gap-2">
                             {protein.derivedFrom.map((source, i) => (
-                              <span key={i} className="text-sm bg-white px-3 py-1 rounded text-gray-600">
+                              <span key={i} className="text-xs bg-white px-2 py-1 rounded text-gray-600">
                                 {source}
                               </span>
                             ))}
@@ -96,8 +96,8 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                       )}
                       {protein.production && (
                         <div>
-                          <h6 className="text-sm font-medium text-gray-700 mb-2">Production:</h6>
-                          <p className="text-sm text-gray-600">{protein.production}</p>
+                          <h6 className="text-xs font-medium text-gray-700 mb-2">Production:</h6>
+                          <p className="text-xs text-gray-600">{protein.production}</p>
                         </div>
                       )}
                     </div>
@@ -108,22 +108,22 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
 
             {article.materials && article.materials.length > 0 && (
               <div className="space-y-6">
-                <h4 className="text-xl font-semibold text-gray-900">Materials</h4>
+                <h4 className="text-lg font-semibold text-gray-900">Materials</h4>
                 {article.materials.map((material, idx) => (
                   <div key={idx} className="bg-gray-50 rounded-lg p-6 space-y-4">
                     <div className="space-y-2">
-                      <h5 className="text-lg font-medium text-gray-900">{material.name}</h5>
-                      <p className="text-gray-600">
+                      <h5 className="text-base font-medium text-gray-900">{material.name}</h5>
+                      <p className="text-sm text-gray-600">
                         {material.description}
                       </p>
                     </div>
                     
                     {material.properties && material.properties.length > 0 && (
                       <div>
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">Key Properties:</h6>
+                        <h6 className="text-xs font-medium text-gray-700 mb-2">Key Properties:</h6>
                         <div className="flex flex-wrap gap-2">
                           {material.properties.map((prop, i) => (
-                            <span key={i} className="text-sm bg-white px-3 py-1 rounded text-gray-600">
+                            <span key={i} className="text-xs bg-white px-2 py-1 rounded text-gray-600">
                               {prop}
                             </span>
                           ))}
@@ -140,10 +140,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
               {article.methods && article.methods.length > 0 && (
                 <div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Methods</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Methods</h4>
                   <ul className="space-y-2">
                     {article.methods.map((method, idx) => (
-                      <li key={idx} className="text-gray-600">• {method}</li>
+                      <li key={idx} className="text-sm text-gray-600">• {method}</li>
                     ))}
                   </ul>
                 </div>
@@ -151,10 +151,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
               
               {article.analysisTools && article.analysisTools.length > 0 && (
                 <div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Analysis Techniques</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Analysis Techniques</h4>
                   <ul className="space-y-2">
                     {article.analysisTools.map((tool, idx) => (
-                      <li key={idx} className="text-gray-600">• {tool}</li>
+                      <li key={idx} className="text-sm text-gray-600">• {tool}</li>
                     ))}
                   </ul>
                 </div>
@@ -164,8 +164,8 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
 
           {article.conclusions && (
             <div className="border-t pt-8">
-              <h4 className="text-xl font-semibold text-gray-900 mb-4">Results & Conclusions</h4>
-              <p className="text-gray-600 leading-relaxed">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Results & Conclusions</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
                 {article.conclusions}
               </p>
             </div>
@@ -175,3 +175,4 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
     </article>
   );
 };
+
