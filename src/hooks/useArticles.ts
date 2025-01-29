@@ -7,26 +7,10 @@ interface FilterOptions {
   proteinFamily?: string[];
 }
 
-const ARTICLES_PER_PAGE = 20;
+const ARTICLES_PER_PAGE = 10; // Reduced from 20 to 10 to improve performance
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}) => {
   try {
-    // First, if we have protein family filters, get the relevant PMIDs
-    let pmidsToFilter: string[] = [];
-    if (filters.proteinFamily && filters.proteinFamily.length > 0) {
-      const { data: filteredPmids, error: pmidError } = await supabase
-        .from('facets')
-        .select('article_pmid')
-        .contains('protein_family', filters.proteinFamily);
-        
-      if (pmidError) throw pmidError;
-      pmidsToFilter = filteredPmids?.map(row => row.article_pmid) || [];
-      if (pmidsToFilter.length === 0) {
-        return []; // No matches found for the protein family filter
-      }
-    }
-
-    // Build the main query with pagination
     let query = supabase
       .from('articles')
       .select(`
@@ -34,19 +18,8 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         title,
         abstract,
         authors,
-        timestamp,
-        proteins:proteins (
-          name,
-          description
-        ),
-        materials:materials (
-          name,
-          description
-        ),
-        facets:facets (
-          protein_family
-        )
-      `, { count: 'exact' })
+        timestamp
+      `)
       .order('timestamp', { ascending: false })
       .range(0, ARTICLES_PER_PAGE - 1);
 
@@ -55,15 +28,51 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
     }
 
-    // Apply PMID filter if we have protein family filters
-    if (pmidsToFilter.length > 0) {
-      query = query.in('pmid', pmidsToFilter);
+    // Get the base articles first
+    const { data: baseArticles, error: baseError } = await query;
+    
+    if (baseError) throw baseError;
+    if (!baseArticles) return [];
+
+    // Then fetch related data for these articles
+    const articlePromises = baseArticles.map(async (article) => {
+      const [proteinsResult, materialsResult, facetsResult] = await Promise.all([
+        supabase
+          .from('proteins')
+          .select('name, description')
+          .eq('article_pmid', article.pmid),
+        supabase
+          .from('materials')
+          .select('name, description')
+          .eq('article_pmid', article.pmid),
+        supabase
+          .from('facets')
+          .select('protein_family')
+          .eq('article_pmid', article.pmid)
+      ]);
+
+      return {
+        ...article,
+        proteins: proteinsResult.data || [],
+        materials: materialsResult.data || [],
+        facets: facetsResult.data || []
+      };
+    });
+
+    const enrichedArticles = await Promise.all(articlePromises);
+
+    // Apply protein family filter if present
+    if (filters.proteinFamily?.length) {
+      return enrichedArticles.filter(article => 
+        article.facets.some(facet => 
+          facet.protein_family?.some(family => 
+            filters.proteinFamily?.includes(family)
+          )
+        )
+      );
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    
-    return data as Article[];
+    return enrichedArticles as Article[];
   } catch (error) {
     console.error('Error fetching articles:', error);
     throw error;
@@ -75,6 +84,7 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}) =>
     queryKey: ['articles', searchQuery, filters],
     queryFn: () => fetchArticles(searchQuery, filters),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    retry: 2, // Retry failed requests twice
+    retry: 3, // Increased retries
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000), // Exponential backoff
   });
 };
