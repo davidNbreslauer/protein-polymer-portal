@@ -1,4 +1,3 @@
-
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -39,12 +38,7 @@ const fetchArticles = async (searchQuery: string = '') => {
     .order('timestamp', { ascending: false });
 
   if (searchQuery) {
-    query = query.or(
-      `title.ilike.%${searchQuery}%,` +
-      `abstract.ilike.%${searchQuery}%,` +
-      `proteins.name.ilike.%${searchQuery}%,` +
-      `materials.name.ilike.%${searchQuery}%`
-    );
+    query = query.or(`title.ilike.%${searchQuery}%, abstract.ilike.%${searchQuery}%`);
   }
 
   const { data, error } = await query;
