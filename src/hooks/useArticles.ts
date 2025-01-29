@@ -20,7 +20,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         name,
         description
       ),
-      facets!inner (
+      facets (
         protein_family
       )
     `)
@@ -31,7 +31,13 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
   }
 
   if (filters.proteinFamily && filters.proteinFamily.length > 0) {
-    query = query.contains('facets.protein_family', filters.proteinFamily);
+    // Using a subquery to filter articles that have matching protein families
+    query = query.in('pmid', 
+      supabase
+        .from('facets')
+        .select('article_pmid')
+        .contains('protein_family', filters.proteinFamily)
+    );
   }
 
   const { data, error } = await query;
