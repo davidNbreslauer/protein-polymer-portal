@@ -3,6 +3,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink } from "lucide-react";
 import type { Article } from "@/types/article";
+import { Badge } from "@/components/ui/badge";
 
 interface ArticleCardProps {
   article: Article;
@@ -28,10 +29,11 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
               href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs bg-gray-900 px-3 py-1.5 rounded-lg text-white flex items-center gap-1.5 hover:bg-gray-800 transition-colors"
             >
-              PMID: {article.pmid}
-              <ExternalLink className="w-3.5 h-3.5" />
+              <Badge variant="pubmed" className="flex items-center gap-1.5">
+                PMID: {article.pmid}
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Badge>
             </a>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
@@ -175,4 +177,3 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
     </article>
   );
 };
-
