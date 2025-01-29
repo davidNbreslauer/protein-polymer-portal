@@ -58,9 +58,13 @@ const Index = () => {
               </div>
             )}
 
-            {articles?.length === 0 && !isLoading && (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No articles found matching your criteria.</p>
+            {!isLoading && !error && (
+              <div className="text-sm text-gray-500 mb-4">
+                {articles?.length === 0 ? (
+                  "No articles found matching your criteria."
+                ) : (
+                  `Showing ${articles?.length} article${articles?.length === 1 ? '' : 's'} on page ${currentPage + 1}`
+                )}
               </div>
             )}
 
