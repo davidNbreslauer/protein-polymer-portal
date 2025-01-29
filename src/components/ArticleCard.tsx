@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Brain } from "lucide-react";
 import type { Article } from "@/types/article";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,7 +45,8 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
         </div>
 
         <div>
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed flex items-center gap-2">
+            <Brain className="w-4 h-4 text-gray-400 shrink-0" />
             {article.summary || "No summary available."}
           </p>
         </div>
