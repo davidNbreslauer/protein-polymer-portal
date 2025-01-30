@@ -2,9 +2,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Article } from "@/types/article";
+import { useBookmarks } from "./useBookmarks";
 
 interface FilterOptions {
   proteinFamily?: string[];
+  showBookmarksOnly?: boolean;
 }
 
 const ARTICLES_PER_PAGE = 10;
@@ -52,7 +54,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
           .eq('article_pmid', article.pmid),
         supabase
           .from('materials')
-          .select('name, description, properties, key_properties') // Added key_properties here
+          .select('name, description, properties, key_properties')
           .eq('article_pmid', article.pmid),
         supabase
           .from('facets')
@@ -100,9 +102,23 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 };
 
 export const useArticles = (searchQuery: string, filters: FilterOptions = {}, page: number = 0) => {
+  const { bookmarkedPmids } = useBookmarks();
+
   return useQuery({
-    queryKey: ['articles', searchQuery, filters, page],
-    queryFn: () => fetchArticles(searchQuery, filters, page),
+    queryKey: ['articles', searchQuery, filters, page, bookmarkedPmids],
+    queryFn: async () => {
+      const result = await fetchArticles(searchQuery, filters, page);
+      
+      // Apply bookmarks filter if requested
+      if (filters.showBookmarksOnly) {
+        return {
+          ...result,
+          articles: result.articles.filter(article => bookmarkedPmids.includes(article.pmid))
+        };
+      }
+      
+      return result;
+    },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),

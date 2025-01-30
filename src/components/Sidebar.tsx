@@ -1,14 +1,14 @@
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Filter } from "lucide-react";
 
 interface SidebarProps {
-  onFilterChange: (filters: { proteinFamily: string[] }) => void;
+  onFilterChange: (filters: { proteinFamily: string[], showBookmarksOnly?: boolean }) => void;
 }
 
 export const Sidebar = ({ onFilterChange }: SidebarProps) => {
   const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
 
   const handleProteinFamilyChange = (family: string) => {
     const updatedFamilies = selectedProteinFamilies.includes(family)
@@ -16,12 +16,18 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
       : [...selectedProteinFamilies, family];
     
     setSelectedProteinFamilies(updatedFamilies);
-    onFilterChange({ proteinFamily: updatedFamilies });
+    onFilterChange({ proteinFamily: updatedFamilies, showBookmarksOnly });
+  };
+
+  const handleBookmarksToggle = (checked: boolean) => {
+    setShowBookmarksOnly(checked);
+    onFilterChange({ proteinFamily: selectedProteinFamilies, showBookmarksOnly: checked });
   };
 
   const handleClearAll = () => {
     setSelectedProteinFamilies([]);
-    onFilterChange({ proteinFamily: [] });
+    setShowBookmarksOnly(false);
+    onFilterChange({ proteinFamily: [], showBookmarksOnly: false });
   };
 
   return (
@@ -43,6 +49,22 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
         </div>
 
         <div className="p-4 space-y-6">
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">View Options</h3>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={showBookmarksOnly}
+                  onChange={(e) => handleBookmarksToggle(e.target.checked)}
+                  className="rounded border-gray-300 text-primary 
+                           focus:ring-primary/20"
+                />
+                <span className="ml-2 text-sm text-gray-600">Show Bookmarks Only</span>
+              </label>
+            </div>
+          </div>
+
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Date Range</h3>
             <div className="space-y-2">
