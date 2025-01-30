@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Brain, BrainCircuit } from "lucide-react";
@@ -64,10 +63,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
           </div>
         )}
 
-        <div className={cn(
-          "space-y-4 overflow-hidden transition-all duration-300",
-          isExpanded ? "max-h-[2000px] opacity-100 pt-4" : "max-h-0 opacity-0"
-        )}>
+        {(article.proteins || article.materials) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
             {article.proteins && article.proteins.length > 0 && (
               <div className="space-y-3">
@@ -76,7 +72,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                   Proteins
                 </h4>
                 {article.proteins.map((protein, idx) => (
-                  <div key={idx} className="bg-[#F1F0FB] rounded-lg p-4 space-y-2 shadow-sm">
+                  <div key={idx} className="bg-[#D3E4FD] rounded-lg p-4 space-y-2 shadow-sm">
                     <div className="space-y-1">
                       <div className="flex justify-between items-start">
                         <h5 className="text-sm font-medium text-gray-900">{protein.name}</h5>
@@ -121,7 +117,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                   Materials
                 </h4>
                 {article.materials.map((material, idx) => (
-                  <div key={idx} className="bg-[#F1F0FB] rounded-lg p-4 space-y-2 shadow-sm">
+                  <div key={idx} className="bg-[#D3E4FD] rounded-lg p-4 space-y-2 shadow-sm">
                     <div className="space-y-1">
                       <h5 className="text-sm font-medium text-gray-900">{material.name}</h5>
                       <p className="text-xs text-gray-600">
@@ -146,45 +142,45 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
               </div>
             )}
           </div>
+        )}
 
-          {(article.methods?.length > 0 || article.analysisTools?.length > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-              {article.methods && article.methods.length > 0 && (
-                <div>
-                  <h4 className="text-base font-semibold text-gray-900 mb-2">Methods</h4>
-                  <ul className="space-y-1">
-                    {article.methods.map((method, idx) => (
-                      <li key={idx} className="text-xs text-gray-600">• {method}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {article.analysisTools && article.analysisTools.length > 0 && (
-                <div>
-                  <h4 className="text-base font-semibold text-gray-900 mb-2">Analysis Techniques</h4>
-                  <ul className="space-y-1">
-                    {article.analysisTools.map((tool, idx) => (
-                      <li key={idx} className="text-xs text-gray-600">• {tool}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+        {(article.methods?.length > 0 || article.analysisTools?.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+            {article.methods && article.methods.length > 0 && (
+              <div>
+                <h4 className="text-base font-semibold text-gray-900 mb-2">Methods</h4>
+                <ul className="space-y-1">
+                  {article.methods.map((method, idx) => (
+                    <li key={idx} className="text-xs text-gray-600">• {method}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {article.analysisTools && article.analysisTools.length > 0 && (
+              <div>
+                <h4 className="text-base font-semibold text-gray-900 mb-2">Analysis Techniques</h4>
+                <ul className="space-y-1">
+                  {article.analysisTools.map((tool, idx) => (
+                    <li key={idx} className="text-xs text-gray-600">• {tool}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
-          {article.conclusions && (
-            <div className="border-t pt-4">
-              <h4 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                <Brain className="w-4 h-4 text-gray-400" />
-                Results & Conclusions
-              </h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {article.conclusions}
-              </p>
-            </div>
-          )}
-        </div>
+        {article.conclusions && (
+          <div className="border-t pt-4">
+            <h4 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <Brain className="w-4 h-4 text-gray-400" />
+              Results & Conclusions
+            </h4>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {article.conclusions}
+            </p>
+          </div>
+        )}
       </div>
     </article>
   );
