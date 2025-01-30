@@ -72,7 +72,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                   Proteins
                 </h4>
                 {article.proteins.map((protein, idx) => (
-                  <div key={idx} className="bg-[#D3E4FD] rounded-lg p-4 space-y-2 shadow-sm">
+                  <div key={idx} className="bg-[#EBF3FF] rounded-lg p-4 space-y-2 shadow-sm">
                     <div className="space-y-1">
                       <div className="flex justify-between items-start">
                         <h5 className="text-sm font-medium text-gray-900">{protein.name}</h5>
@@ -117,7 +117,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                   Materials
                 </h4>
                 {article.materials.map((material, idx) => (
-                  <div key={idx} className="bg-[#D3E4FD] rounded-lg p-4 space-y-2 shadow-sm">
+                  <div key={idx} className="bg-[#EBF3FF] rounded-lg p-4 space-y-2 shadow-sm">
                     <div className="space-y-1">
                       <h5 className="text-sm font-medium text-gray-900">{material.name}</h5>
                       <p className="text-xs text-gray-600">
