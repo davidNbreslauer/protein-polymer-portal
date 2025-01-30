@@ -48,7 +48,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       const [proteinsResult, materialsResult, facetsResult] = await Promise.all([
         supabase
           .from('proteins')
-          .select('name, description')
+          .select('name, description, type, derivedFrom, production')
           .eq('article_pmid', article.pmid),
         supabase
           .from('materials')
