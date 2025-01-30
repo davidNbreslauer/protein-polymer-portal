@@ -11,7 +11,6 @@ interface ArticleCardProps {
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const proteinType = article.proteins?.[0]?.type;
 
   return (
     <article className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
@@ -26,11 +25,6 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {proteinType && (
-              <Badge variant="pubmed" className="flex items-center gap-1.5">
-                {proteinType}
-              </Badge>
-            )}
             <a
               href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
               target="_blank"
