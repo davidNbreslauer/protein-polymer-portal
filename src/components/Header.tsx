@@ -1,10 +1,11 @@
 
 import { Database, LogIn, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
+import { Session } from "@supabase/supabase-js";
 
 interface HeaderProps {
   searchQuery: string;
@@ -17,6 +18,23 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showLogin, setShowLogin] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSignIn = async () => {
     try {
@@ -110,67 +128,85 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
           </div>
           
           <div className="flex items-center gap-4">
-            {!showLogin ? (
-              <Button 
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={() => setShowLogin(true)}
-                disabled={isLoading}
-              >
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Button>
+            {session ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm text-gray-600">{session.user.email}</span>
+                </div>
+                <Button 
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={handleSignOut}
+                  disabled={isLoading}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </div>
             ) : (
-              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-                <div className="space-y-2">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                  />
-                  <div className="flex gap-2">
+              !showLogin ? (
+                <Button 
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={() => setShowLogin(true)}
+                  disabled={isLoading}
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+              ) : (
+                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div className="space-y-2">
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleSignIn}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
+                        Sign In
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSignUp}
+                        disabled={isLoading}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Sign Up
+                      </Button>
+                    </div>
                     <Button
                       size="sm"
-                      onClick={handleSignIn}
+                      variant="ghost"
+                      onClick={() => {
+                        setShowLogin(false);
+                        setEmail("");
+                        setPassword("");
+                      }}
                       disabled={isLoading}
-                      className="flex-1"
+                      className="w-full"
                     >
-                      Sign In
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleSignUp}
-                      disabled={isLoading}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Sign Up
+                      Cancel
                     </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setShowLogin(false);
-                      setEmail("");
-                      setPassword("");
-                    }}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    Cancel
-                  </Button>
                 </div>
-              </div>
+              )
             )}
           </div>
         </div>
