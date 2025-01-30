@@ -1,9 +1,11 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Brain, BrainCircuit, ListCheck } from "lucide-react";
+import { ExternalLink, Brain, BrainCircuit, ListCheck, Bookmark } from "lucide-react";
 import type { Article } from "@/types/article";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useBookmarks } from "@/hooks/useBookmarks";
 
 interface ArticleCardProps {
   article: Article;
@@ -11,6 +13,8 @@ interface ArticleCardProps {
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { bookmarkedPmids, toggleBookmark, isLoadingBookmarks } = useBookmarks();
+  const isBookmarked = bookmarkedPmids.includes(article.pmid);
 
   return (
     <article className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
@@ -25,6 +29,20 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              disabled={isLoadingBookmarks}
+              onClick={() => toggleBookmark(article.pmid)}
+            >
+              <Bookmark 
+                className={cn(
+                  "h-4 w-4",
+                  isBookmarked ? "fill-current" : "fill-none"
+                )} 
+              />
+            </Button>
             <a
               href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
               target="_blank"

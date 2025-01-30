@@ -51,6 +51,35 @@ export type Database = {
         }
         Relationships: []
       }
+      bookmarks: {
+        Row: {
+          article_pmid: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_pmid: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_pmid?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_article_pmid_fkey"
+            columns: ["article_pmid"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["pmid"]
+          },
+        ]
+      }
       facets: {
         Row: {
           application: string[] | null
