@@ -13,10 +13,15 @@ const ARTICLES_PER_PAGE = 10;
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, bookmarkedPmids: string[] = []) => {
   try {
+    // If showing bookmarks only and there are no bookmarks, return empty result
+    if (filters.showBookmarksOnly && (!bookmarkedPmids || bookmarkedPmids.length === 0)) {
+      return { articles: [], totalCount: 0 };
+    }
+
     let totalCount = 0;
     
     // Handle count based on filter conditions
-    if (filters.showBookmarksOnly && bookmarkedPmids.length > 0) {
+    if (filters.showBookmarksOnly) {
       const { count, error: countError } = await supabase
         .from('articles')
         .select('*', { count: 'exact', head: true })
@@ -44,11 +49,10 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         timestamp,
         summary,
         conclusions
-      `)
-      .order('timestamp', { ascending: false });
+      `);
 
-    // Apply bookmarks filter if requested
-    if (filters.showBookmarksOnly && bookmarkedPmids.length > 0) {
+    // Apply bookmarks filter first if requested
+    if (filters.showBookmarksOnly) {
       query = query.in('pmid', bookmarkedPmids);
     }
 
@@ -57,8 +61,10 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
     }
 
-    // Apply pagination
-    query = query.range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
+    // Apply sorting and pagination
+    query = query
+      .order('timestamp', { ascending: false })
+      .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
 
     // Get the base articles
     const { data: baseArticles, error: baseError } = await query;
