@@ -11,8 +11,8 @@ export type Article = {
     name: string;
     description: string;
     type?: string;
-    derivedFrom?: string[];
-    production_method?: string;
+    derived_from?: string[];
+    production_method?: string[];
   }[];
   materials?: {
     name: string;

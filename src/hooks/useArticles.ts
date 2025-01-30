@@ -34,7 +34,10 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     // Apply text search filter if present
     if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`.split(','));
+      query = query.or([
+        `title.ilike.%${searchQuery}%`,
+        `abstract.ilike.%${searchQuery}%`
+      ]);
     }
 
     // Get the base articles first
@@ -60,9 +63,17 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
           .eq('article_pmid', article.pmid)
       ]);
 
+      // Parse production_method string if it's in bracketed list format
+      const proteins = proteinsResult.data?.map(protein => ({
+        ...protein,
+        production_method: protein.production_method 
+          ? protein.production_method.replace(/[\[\]']/g, '').split(',').map(m => m.trim())
+          : undefined
+      })) || [];
+
       return {
         ...article,
-        proteins: proteinsResult.data || [],
+        proteins,
         materials: materialsResult.data || [],
         facets: facetsResult.data || []
       };
