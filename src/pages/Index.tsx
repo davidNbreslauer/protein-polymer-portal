@@ -9,13 +9,13 @@ import { BookmarkIcon } from "lucide-react";
 
 export const Index = () => {
   const { user } = useAuth();
-  const { articles, isLoading } = useArticles();
+  const { data, isLoading } = useArticles("", {}, 0);
   const { bookmarkedPmids } = useBookmarks();
   const [showBookmarked, setShowBookmarked] = useState(false);
 
   const filteredArticles = showBookmarked 
-    ? articles.filter(article => bookmarkedPmids.includes(article.pmid))
-    : articles;
+    ? (data?.articles || []).filter(article => bookmarkedPmids.includes(article.pmid))
+    : (data?.articles || []);
 
   if (!user) {
     return (
