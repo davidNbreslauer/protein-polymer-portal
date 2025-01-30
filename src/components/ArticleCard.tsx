@@ -76,12 +76,12 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                   Proteins
                 </h4>
                 {article.proteins.map((protein, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div key={idx} className="bg-[#F1F0FB] rounded-lg p-4 space-y-2 shadow-sm">
                     <div className="space-y-1">
                       <div className="flex justify-between items-start">
                         <h5 className="text-sm font-medium text-gray-900">{protein.name}</h5>
                         {protein.type && (
-                          <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded">{protein.type}</span>
+                          <span className="text-xs bg-white/80 backdrop-blur-sm text-gray-700 px-2 py-0.5 rounded">{protein.type}</span>
                         )}
                       </div>
                       <p className="text-xs text-gray-600">
@@ -95,7 +95,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                           <h6 className="text-xs font-medium text-gray-700 mb-1">Derived from:</h6>
                           <div className="flex gap-1.5">
                             {protein.derivedFrom.map((source, i) => (
-                              <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
+                              <span key={i} className="text-xs bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-gray-600">
                                 {source}
                               </span>
                             ))}
@@ -121,7 +121,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                   Materials
                 </h4>
                 {article.materials.map((material, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div key={idx} className="bg-[#F1F0FB] rounded-lg p-4 space-y-2 shadow-sm">
                     <div className="space-y-1">
                       <h5 className="text-sm font-medium text-gray-900">{material.name}</h5>
                       <p className="text-xs text-gray-600">
@@ -134,7 +134,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                         <h6 className="text-xs font-medium text-gray-700 mb-1">Key Properties:</h6>
                         <div className="flex flex-wrap gap-1.5">
                           {material.properties.map((prop, i) => (
-                            <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
+                            <span key={i} className="text-xs bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-gray-600">
                               {prop}
                             </span>
                           ))}
