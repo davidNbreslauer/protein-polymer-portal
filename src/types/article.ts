@@ -12,7 +12,7 @@ export type Article = {
     description: string;
     type?: string;
     derivedFrom?: string[];
-    production?: string;
+    production_method?: string;
   }[];
   materials?: {
     name: string;

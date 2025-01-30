@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Brain, BrainCircuit } from "lucide-react";
@@ -102,10 +101,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                           </div>
                         </div>
                       )}
-                      {protein.production && (
+                      {protein.production_method && (
                         <div>
                           <h6 className="text-xs font-medium text-gray-700 mb-1">Production:</h6>
-                          <p className="text-xs text-gray-600">{protein.production}</p>
+                          <p className="text-xs text-gray-600">{protein.production_method}</p>
                         </div>
                       )}
                     </div>
