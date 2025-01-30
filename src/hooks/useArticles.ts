@@ -34,7 +34,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     // Apply text search filter if present
     if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
+      query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`.split(','));
     }
 
     // Get the base articles first
