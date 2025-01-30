@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Brain, BrainCircuit } from "lucide-react";
@@ -79,7 +80,9 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                     <div className="space-y-1">
                       <div className="flex justify-between items-start">
                         <h5 className="text-sm font-medium text-gray-900">{protein.name}</h5>
-                        <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded">Engineered</span>
+                        {protein.type && (
+                          <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded">{protein.type}</span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-600">
                         {protein.description}

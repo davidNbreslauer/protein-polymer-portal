@@ -10,6 +10,7 @@ export type Article = {
   proteins?: {
     name: string;
     description: string;
+    type?: string;
     derivedFrom?: string[];
     production?: string;
   }[];
