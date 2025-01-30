@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Brain, BrainCircuit } from "lucide-react";
@@ -89,11 +90,11 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
-                      {protein.derivedFrom && protein.derivedFrom.length > 0 && (
+                      {protein.derived_from && protein.derived_from.length > 0 && (
                         <div>
                           <h6 className="text-xs font-medium text-gray-700 mb-1">Derived from:</h6>
                           <div className="flex gap-1.5">
-                            {protein.derivedFrom.map((source, i) => (
+                            {protein.derived_from.map((source, i) => (
                               <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
                                 {source}
                               </span>
@@ -101,10 +102,16 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                           </div>
                         </div>
                       )}
-                      {protein.production_method && (
+                      {protein.production_method && protein.production_method.length > 0 && (
                         <div>
                           <h6 className="text-xs font-medium text-gray-700 mb-1">Production:</h6>
-                          <p className="text-xs text-gray-600">{protein.production_method}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {protein.production_method.map((method, i) => (
+                              <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
+                                {method}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
