@@ -18,6 +18,7 @@ export type Article = {
     name: string;
     description: string;
     properties?: string[];
+    key_properties?: string[];
   }[];
   methods?: string[];
   analysisTools?: string[];

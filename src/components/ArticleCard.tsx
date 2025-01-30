@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Brain, BrainCircuit } from "lucide-react";
+import { ExternalLink, Brain, BrainCircuit, ListCheck } from "lucide-react";
 import type { Article } from "@/types/article";
 import { Badge } from "@/components/ui/badge";
 
@@ -135,18 +135,35 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                       </p>
                     </div>
                     
-                    {material.properties && material.properties.length > 0 && (
-                      <div>
-                        <h6 className="text-xs font-medium text-gray-700 mb-1">Key Properties:</h6>
-                        <div className="flex flex-wrap gap-1.5">
-                          {material.properties.map((prop, i) => (
-                            <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
-                              {prop}
-                            </span>
-                          ))}
+                    <div className="grid grid-cols-2 gap-3">
+                      {material.properties && material.properties.length > 0 && (
+                        <div>
+                          <h6 className="text-xs font-medium text-gray-700 mb-1">Properties:</h6>
+                          <div className="flex flex-wrap gap-1.5">
+                            {material.properties.map((prop, i) => (
+                              <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
+                                {prop}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {material.key_properties && material.key_properties.length > 0 && (
+                        <div>
+                          <h6 className="text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                            <ListCheck className="w-3.5 h-3.5 text-gray-400" />
+                            Key Properties:
+                          </h6>
+                          <div className="flex flex-wrap gap-1.5">
+                            {material.key_properties.map((prop, i) => (
+                              <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
+                                {prop}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
