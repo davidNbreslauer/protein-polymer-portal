@@ -1,154 +1,110 @@
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useArticles } from "@/hooks/useArticles";
-import { useBookmarks } from "@/hooks/useBookmarks";
+import { Header } from "@/components/Header";
+import { Sidebar } from "@/components/Sidebar";
 import { ArticleCard } from "@/components/ArticleCard";
+import { useArticles } from "@/hooks/useArticles";
 import { Button } from "@/components/ui/button";
-import { BookmarkIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export const Index = () => {
-  const { user } = useAuth();
-  const { data, isLoading } = useArticles("", {}, 0);
-  const { bookmarkedPmids } = useBookmarks();
-  const [showBookmarked, setShowBookmarked] = useState(false);
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSigningUp, setIsSigningUp] = useState(false);
-  const [error, setError] = useState("");
+const Index = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({ proteinFamily: [] as string[] });
+  const [currentPage, setCurrentPage] = useState(0);
+  
+  const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage);
+  const articles = data?.articles || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / 10);
 
-  const filteredArticles = showBookmarked 
-    ? (data?.articles || []).filter(article => bookmarkedPmids.includes(article.pmid))
-    : (data?.articles || []);
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(0); // Reset to first page on new search
+  };
 
-  const handleSignIn = async () => {
-    setIsSigningIn(true);
-    setError("");
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setIsSigningIn(false);
+  const handleFilterChange = (newFilters: { proteinFamily: string[] }) => {
+    setFilters(newFilters);
+    setCurrentPage(0); // Reset to first page on filter change
+  };
+
+  const handleNextPage = () => {
+    if (articles && articles.length === 10) { // If we have a full page, there might be more
+      setCurrentPage(prev => prev + 1);
     }
   };
 
-  const handleSignUp = async () => {
-    setIsSigningUp(true);
-    setError("");
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-      if (error) throw error;
-      setError("Please check your email for the confirmation link.");
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setIsSigningUp(false);
-    }
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(0, prev - 1));
   };
-
-  if (!user) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-8">
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-center mb-6">Welcome</h2>
-          
-          {error && (
-            <p className="text-sm text-red-500 text-center">{error}</p>
-          )}
-          
-          <div className="space-y-3">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Button 
-              className="w-full"
-              onClick={handleSignIn}
-              disabled={isSigningIn || isSigningUp}
-            >
-              {isSigningIn ? "Signing in..." : "Sign in"}
-            </Button>
-            
-            <Button 
-              variant="outline"
-              className="w-full"
-              onClick={handleSignUp}
-              disabled={isSigningIn || isSigningUp}
-            >
-              {isSigningUp ? "Creating account..." : "Create account"}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <p className="text-center text-gray-600">Loading articles...</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={async () => await supabase.auth.signOut()}
-        >
-          Sign out
-        </Button>
-        <Button
-          variant={showBookmarked ? "default" : "outline"}
-          onClick={() => setShowBookmarked(!showBookmarked)}
-          className="flex items-center gap-2"
-        >
-          <BookmarkIcon className="h-4 w-4" />
-          {showBookmarked ? "Show all" : "Show bookmarked"}
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header searchQuery={searchQuery} onSearchChange={handleSearch} />
 
-      <div className="space-y-6">
-        {filteredArticles.length > 0 ? (
-          filteredArticles.map((article) => (
-            <ArticleCard key={article.pmid} article={article} />
-          ))
-        ) : (
-          <p className="text-center text-gray-600">
-            {showBookmarked 
-              ? "No bookmarked articles found"
-              : "No articles found"
-            }
-          </p>
-        )}
-      </div>
+      <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
+        <div className="flex gap-6">
+          <div className="pt-4">
+            <Sidebar onFilterChange={handleFilterChange} />
+          </div>
+
+          <div className="flex-1 space-y-4 pt-4">
+            {isLoading && (
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-500">Loading articles...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+                Error loading articles. Please try again later.
+              </div>
+            )}
+
+            {!isLoading && !error && (
+              <div className="text-sm text-gray-500 mb-4">
+                {articles.length === 0 ? (
+                  "No articles found matching your criteria."
+                ) : (
+                  `Showing ${articles.length} article${articles.length === 1 ? '' : 's'} of ${totalCount} total result${totalCount === 1 ? '' : 's'}`
+                )}
+              </div>
+            )}
+
+            {articles?.map((article) => (
+              <ArticleCard key={article.pmid} article={article} />
+            ))}
+
+            {articles && articles.length > 0 && (
+              <div className="flex justify-between items-center pt-6">
+                <Button 
+                  variant="outline"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+
+                <span className="text-sm text-gray-500">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+
+                <Button 
+                  variant="outline"
+                  onClick={handleNextPage}
+                  disabled={articles.length < 10 || (currentPage + 1) * 10 >= totalCount}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
