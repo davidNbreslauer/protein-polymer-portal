@@ -7,6 +7,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { Button } from "@/components/ui/button";
 import { BookmarkIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 
 export const Index = () => {
   const { user } = useAuth();
@@ -14,6 +15,10 @@ export const Index = () => {
   const { bookmarkedPmids } = useBookmarks();
   const [showBookmarked, setShowBookmarked] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [error, setError] = useState("");
 
   const filteredArticles = showBookmarked 
     ? (data?.articles || []).filter(article => bookmarkedPmids.includes(article.pmid))
@@ -21,33 +26,83 @@ export const Index = () => {
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
+    setError("");
     try {
-      await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: window.location.origin
-        }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    } catch (error) {
-      console.error('Error signing in:', error);
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message);
     } finally {
       setIsSigningIn(false);
     }
   };
 
+  const handleSignUp = async () => {
+    setIsSigningUp(true);
+    setError("");
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      setError("Please check your email for the confirmation link.");
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsSigningUp(false);
+    }
+  };
+
   if (!user) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="text-center space-y-4">
-          <p className="text-gray-600">
-            Please sign in to view articles
-          </p>
-          <Button 
-            onClick={handleSignIn}
-            disabled={isSigningIn}
-          >
-            {isSigningIn ? "Signing in..." : "Sign in with GitHub"}
-          </Button>
+      <div className="max-w-md mx-auto px-4 py-8">
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-center mb-6">Welcome</h2>
+          
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
+          
+          <div className="space-y-3">
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Button 
+              className="w-full"
+              onClick={handleSignIn}
+              disabled={isSigningIn || isSigningUp}
+            >
+              {isSigningIn ? "Signing in..." : "Sign in"}
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full"
+              onClick={handleSignUp}
+              disabled={isSigningIn || isSigningUp}
+            >
+              {isSigningUp ? "Creating account..." : "Create account"}
+            </Button>
+          </div>
         </div>
       </div>
     );
