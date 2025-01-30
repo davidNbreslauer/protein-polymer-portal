@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Brain, BrainCircuit } from "lucide-react";
@@ -85,11 +86,11 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                       </p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                       {protein.derivedFrom && protein.derivedFrom.length > 0 && (
                         <div>
                           <h6 className="text-xs font-medium text-gray-700 mb-1">Derived from:</h6>
-                          <div className="flex gap-1.5">
+                          <div className="flex flex-wrap gap-1.5">
                             {protein.derivedFrom.map((source, i) => (
                               <span key={i} className="text-xs bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded text-gray-600">
                                 {source}
