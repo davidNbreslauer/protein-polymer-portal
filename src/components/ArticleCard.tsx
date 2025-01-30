@@ -56,7 +56,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             {article.tags.map((tag) => (
               <span 
                 key={tag} 
-                className="px-3 py-1 text-xs rounded-full bg-gray-50 text-gray-600"
+                className="text-xs bg-gray-700 text-white px-2 py-0.5 rounded"
               >
                 {tag}
               </span>
