@@ -30,10 +30,12 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
         title: "Successfully signed in",
       });
       setShowLogin(false);
+      setEmail("");
+      setPassword("");
     } catch (error: any) {
       toast({
         title: "Error signing in",
-        description: error.message,
+        description: "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -48,12 +50,26 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
         email,
         password,
       });
-      if (error) throw error;
+      
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast({
+            title: "Account already exists",
+            description: "Please sign in instead.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
+      
       toast({
         title: "Successfully signed up",
         description: "Please check your email to verify your account",
       });
       setShowLogin(false);
+      setEmail("");
+      setPassword("");
     } catch (error: any) {
       toast({
         title: "Error signing up",
@@ -143,7 +159,11 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setShowLogin(false)}
+                    onClick={() => {
+                      setShowLogin(false);
+                      setEmail("");
+                      setPassword("");
+                    }}
                     disabled={isLoading}
                     className="w-full"
                   >
