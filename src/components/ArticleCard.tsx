@@ -65,15 +65,15 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
         )}
 
         <div className={cn(
-          "space-y-8 overflow-hidden transition-all duration-300",
+          "space-y-4 overflow-hidden transition-all duration-300",
           isExpanded ? "max-h-[2000px] opacity-100 pt-4" : "max-h-0 opacity-0"
         )}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
             {article.proteins && article.proteins.length > 0 && (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <h4 className="text-base font-semibold text-gray-900">Proteins</h4>
                 {article.proteins.map((protein, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <div className="space-y-1">
                       <div className="flex justify-between items-start">
                         <h5 className="text-sm font-medium text-gray-900">{protein.name}</h5>
@@ -84,7 +84,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                       </p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       {protein.derivedFrom && protein.derivedFrom.length > 0 && (
                         <div>
                           <h6 className="text-xs font-medium text-gray-700 mb-1">Derived from:</h6>
@@ -110,10 +110,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             )}
 
             {article.materials && article.materials.length > 0 && (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <h4 className="text-base font-semibold text-gray-900">Materials</h4>
                 {article.materials.map((material, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <div className="space-y-1">
                       <h5 className="text-sm font-medium text-gray-900">{material.name}</h5>
                       <p className="text-xs text-gray-600">
@@ -140,11 +140,11 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
           </div>
 
           {(article.methods?.length > 0 || article.analysisTools?.length > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
               {article.methods && article.methods.length > 0 && (
                 <div>
-                  <h4 className="text-base font-semibold text-gray-900 mb-3">Methods</h4>
-                  <ul className="space-y-1.5">
+                  <h4 className="text-base font-semibold text-gray-900 mb-2">Methods</h4>
+                  <ul className="space-y-1">
                     {article.methods.map((method, idx) => (
                       <li key={idx} className="text-xs text-gray-600">• {method}</li>
                     ))}
@@ -154,8 +154,8 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
               
               {article.analysisTools && article.analysisTools.length > 0 && (
                 <div>
-                  <h4 className="text-base font-semibold text-gray-900 mb-3">Analysis Techniques</h4>
-                  <ul className="space-y-1.5">
+                  <h4 className="text-base font-semibold text-gray-900 mb-2">Analysis Techniques</h4>
+                  <ul className="space-y-1">
                     {article.analysisTools.map((tool, idx) => (
                       <li key={idx} className="text-xs text-gray-600">• {tool}</li>
                     ))}
@@ -166,8 +166,8 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
           )}
 
           {article.conclusions && (
-            <div className="border-t pt-8">
-              <h4 className="text-base font-semibold text-gray-900 mb-3">Results & Conclusions</h4>
+            <div className="border-t pt-4">
+              <h4 className="text-base font-semibold text-gray-900 mb-2">Results & Conclusions</h4>
               <p className="text-xs text-gray-600 leading-relaxed">
                 {article.conclusions}
               </p>
