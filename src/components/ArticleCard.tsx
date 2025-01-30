@@ -12,61 +12,25 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <article className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
-      <div className="p-6 space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1 flex-1">
-            <h3 className="font-medium text-gray-900 text-base">
-              {article.title}
-            </h3>
-            <p className="text-xs text-gray-500">
-              {article.authors?.join(', ')}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <a
-              href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Badge variant="pubmed" className="flex items-center gap-1.5">
-                PMID: {article.pmid}
-                <ExternalLink className="w-3.5 h-3.5" />
-              </Badge>
-            </a>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs font-medium text-gray-600 hover:text-gray-900"
-            >
-              {isExpanded ? 'Less' : 'More'}
-            </button>
-          </div>
-        </div>
+    <div
+      className={cn(
+        "bg-white rounded-lg border p-4 transition-all duration-200 ease-in-out",
+        isExpanded && "border-blue-200 shadow-lg"
+      )}
+    >
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">{article.title}</h3>
+        <button onClick={() => setIsExpanded(!isExpanded)}>
+          {isExpanded ? "Collapse" : "Expand"}
+        </button>
+      </div>
 
-        <div>
-          <p className="text-sm text-gray-600 leading-relaxed flex items-center gap-2">
-            <Brain className="w-4 h-4 text-gray-400 shrink-0" />
-            {article.summary || "No summary available."}
-          </p>
-        </div>
-
-        {article.tags && article.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {article.tags.map((tag) => (
-              <span 
-                key={tag} 
-                className="px-3 py-1 text-xs rounded-full bg-gray-50 text-gray-600"
-              >
-                {tag}
-              </span>
-            ))}
+      {isExpanded && (
+        <div className="mt-4 space-y-4">
+          <div className="border-t pt-4">
+            <p className="text-xs text-gray-600 leading-relaxed">{article.abstract}</p>
           </div>
-        )}
 
-        <div className={cn(
-          "space-y-4 overflow-hidden transition-all duration-300",
-          isExpanded ? "max-h-[2000px] opacity-100 pt-4" : "max-h-0 opacity-0"
-        )}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
             {article.proteins && article.proteins.length > 0 && (
               <div className="space-y-3">
@@ -77,35 +41,42 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                 {article.proteins.map((protein, idx) => (
                   <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <div className="space-y-1">
-                      <div className="flex justify-between items-start">
-                        <h5 className="text-sm font-medium text-gray-900">{protein.name}</h5>
-                        <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded">Engineered</span>
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-sm font-medium text-gray-900">
+                          {protein.name}
+                        </h5>
+                        {protein.type === 'engineered' && (
+                          <Badge variant="secondary" className="text-xs">
+                            Engineered
+                          </Badge>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-600">
-                        {protein.description}
-                      </p>
+                      <p className="text-xs text-gray-600">{protein.description}</p>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      {protein.derivedFrom && protein.derivedFrom.length > 0 && (
-                        <div>
-                          <h6 className="text-xs font-medium text-gray-700 mb-1">Derived from:</h6>
-                          <div className="flex gap-1.5">
-                            {protein.derivedFrom.map((source, i) => (
-                              <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
-                                {source}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {protein.production && (
-                        <div>
-                          <h6 className="text-xs font-medium text-gray-700 mb-1">Production:</h6>
-                          <p className="text-xs text-gray-600">{protein.production}</p>
-                        </div>
-                      )}
-                    </div>
+                    {protein.derivedFrom && protein.derivedFrom.length > 0 && (
+                      <div>
+                        <span className="text-xs font-medium text-gray-700">
+                          Derived from:
+                        </span>
+                        <ul className="mt-1 list-disc list-inside">
+                          {protein.derivedFrom.map((source, idx) => (
+                            <li key={idx} className="text-xs text-gray-600">
+                              {source}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {protein.production && (
+                      <div>
+                        <span className="text-xs font-medium text-gray-700">
+                          Production:
+                        </span>
+                        <p className="mt-1 text-xs text-gray-600">
+                          {protein.production}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -119,23 +90,20 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                 </h4>
                 {article.materials.map((material, idx) => (
                   <div key={idx} className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <div className="space-y-1">
-                      <h5 className="text-sm font-medium text-gray-900">{material.name}</h5>
-                      <p className="text-xs text-gray-600">
-                        {material.description}
-                      </p>
-                    </div>
-                    
+                    <h5 className="text-sm font-medium text-gray-900">{material.name}</h5>
+                    <p className="text-xs text-gray-600">{material.description}</p>
                     {material.properties && material.properties.length > 0 && (
                       <div>
-                        <h6 className="text-xs font-medium text-gray-700 mb-1">Key Properties:</h6>
-                        <div className="flex flex-wrap gap-1.5">
-                          {material.properties.map((prop, i) => (
-                            <span key={i} className="text-xs bg-white px-2 py-0.5 rounded text-gray-600">
-                              {prop}
-                            </span>
+                        <span className="text-xs font-medium text-gray-700">
+                          Properties:
+                        </span>
+                        <ul className="mt-1 list-disc list-inside">
+                          {material.properties.map((property, idx) => (
+                            <li key={idx} className="text-xs text-gray-600">
+                              {property}
+                            </li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     )}
                   </div>
@@ -144,45 +112,17 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             )}
           </div>
 
-          {(article.methods?.length > 0 || article.analysisTools?.length > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-              {article.methods && article.methods.length > 0 && (
-                <div>
-                  <h4 className="text-base font-semibold text-gray-900 mb-2">Methods</h4>
-                  <ul className="space-y-1">
-                    {article.methods.map((method, idx) => (
-                      <li key={idx} className="text-xs text-gray-600">• {method}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {article.analysisTools && article.analysisTools.length > 0 && (
-                <div>
-                  <h4 className="text-base font-semibold text-gray-900 mb-2">Analysis Techniques</h4>
-                  <ul className="space-y-1">
-                    {article.analysisTools.map((tool, idx) => (
-                      <li key={idx} className="text-xs text-gray-600">• {tool}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="border-t pt-4">
+            <h4 className="text-base font-semibold text-gray-900">Results</h4>
+            <p className="text-xs text-gray-600">{article.results}</p>
+          </div>
 
-          {article.conclusions && (
-            <div className="border-t pt-4">
-              <h4 className="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                <Brain className="w-4 h-4 text-gray-400" />
-                Results & Conclusions
-              </h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {article.conclusions}
-              </p>
-            </div>
-          )}
+          <div className="border-t pt-4">
+            <h4 className="text-base font-semibold text-gray-900">Conclusions</h4>
+            <p className="text-xs text-gray-600">{article.conclusions}</p>
+          </div>
         </div>
-      </div>
-    </article>
+      )}
+    </div>
   );
 };
