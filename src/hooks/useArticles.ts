@@ -11,15 +11,26 @@ interface FilterOptions {
 
 const ARTICLES_PER_PAGE = 10;
 
-const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0) => {
+const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, bookmarkedPmids: string[] = []) => {
   try {
-    // Fetch total count first
-    const { data: countData, error: countError } = await supabase
-      .rpc('count_filtered_articles', { search_query: searchQuery });
-    
-    if (countError) throw countError;
-    const totalCount = countData || 0;
+    // Start building the count query
+    let countQuery = supabase.rpc('count_filtered_articles', { search_query: searchQuery });
 
+    // If showing bookmarks only, we need to count only bookmarked articles
+    if (filters.showBookmarksOnly && bookmarkedPmids.length > 0) {
+      countQuery = supabase.from('articles').select('pmid', { count: 'exact' })
+        .in('pmid', bookmarkedPmids);
+      if (searchQuery) {
+        countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
+      }
+    }
+
+    // Fetch total count
+    const { data: countData, error: countError } = await countQuery;
+    if (countError) throw countError;
+    const totalCount = typeof countData === 'number' ? countData : countData?.length || 0;
+
+    // Start building the main query
     let query = supabase
       .from('articles')
       .select(`
@@ -31,15 +42,22 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         summary,
         conclusions
       `)
-      .order('timestamp', { ascending: false })
-      .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
+      .order('timestamp', { ascending: false });
+
+    // Apply bookmarks filter if requested
+    if (filters.showBookmarksOnly && bookmarkedPmids.length > 0) {
+      query = query.in('pmid', bookmarkedPmids);
+    }
 
     // Apply text search filter if present
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
     }
 
-    // Get the base articles first
+    // Apply pagination
+    query = query.range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
+
+    // Get the base articles
     const { data: baseArticles, error: baseError } = await query;
     
     if (baseError) throw baseError;
@@ -106,19 +124,7 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}, pa
 
   return useQuery({
     queryKey: ['articles', searchQuery, filters, page, bookmarkedPmids],
-    queryFn: async () => {
-      const result = await fetchArticles(searchQuery, filters, page);
-      
-      // Apply bookmarks filter if requested
-      if (filters.showBookmarksOnly) {
-        return {
-          ...result,
-          articles: result.articles.filter(article => bookmarkedPmids.includes(article.pmid))
-        };
-      }
-      
-      return result;
-    },
+    queryFn: () => fetchArticles(searchQuery, filters, page, bookmarkedPmids),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),
