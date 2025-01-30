@@ -52,7 +52,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
           .eq('article_pmid', article.pmid),
         supabase
           .from('materials')
-          .select('name, description')
+          .select('name, description, properties, key_properties') // Added key_properties here
           .eq('article_pmid', article.pmid),
         supabase
           .from('facets')
