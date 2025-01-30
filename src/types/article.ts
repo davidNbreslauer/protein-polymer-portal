@@ -12,7 +12,6 @@ export type Article = {
     description: string;
     derivedFrom?: string[];
     production?: string;
-    type?: string;  // Added to match database schema
   }[];
   materials?: {
     name: string;
