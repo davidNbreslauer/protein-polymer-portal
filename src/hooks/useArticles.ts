@@ -13,22 +13,25 @@ const ARTICLES_PER_PAGE = 10;
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, bookmarkedPmids: string[] = []) => {
   try {
-    // Start building the count query
-    let countQuery = supabase.rpc('count_filtered_articles', { search_query: searchQuery });
-
-    // If showing bookmarks only, we need to count only bookmarked articles
+    let totalCount = 0;
+    
+    // Handle count based on filter conditions
     if (filters.showBookmarksOnly && bookmarkedPmids.length > 0) {
-      countQuery = supabase.from('articles').select('pmid', { count: 'exact' })
-        .in('pmid', bookmarkedPmids);
-      if (searchQuery) {
-        countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
-      }
+      const { count, error: countError } = await supabase
+        .from('articles')
+        .select('*', { count: 'exact', head: true })
+        .in('pmid', bookmarkedPmids)
+        .or(searchQuery ? `title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%` : 'title.neq.dummy');
+      
+      if (countError) throw countError;
+      totalCount = count || 0;
+    } else {
+      const { data: countData, error: countError } = await supabase
+        .rpc('count_filtered_articles', { search_query: searchQuery });
+      
+      if (countError) throw countError;
+      totalCount = countData || 0;
     }
-
-    // Fetch total count
-    const { data: countData, error: countError } = await countQuery;
-    if (countError) throw countError;
-    const totalCount = typeof countData === 'number' ? countData : countData?.length || 0;
 
     // Start building the main query
     let query = supabase
