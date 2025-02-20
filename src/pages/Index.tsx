@@ -72,7 +72,7 @@ const Index = () => {
             )}
 
             {articles?.map((article) => (
-              <ArticleCard key={article.pmid} article={article} />
+              <ArticleCard key={article.id} article={article} />
             ))}
 
             {articles && articles.length > 0 && (
