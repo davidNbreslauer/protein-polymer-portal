@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
+import { UseMutateFunction } from "@tanstack/react-query";
 
 interface CardHeaderProps {
   article: Article;
   isExpanded: boolean;
   setIsExpanded: (expanded: boolean) => void;
   isBookmarked: boolean;
-  toggleBookmark: (pmid: string) => void;
+  toggleBookmark: UseMutateFunction<{ articleId: number; action: "removed" | "added" }, Error, number, unknown>;
   isLoadingBookmarks: boolean;
 }
 
@@ -29,7 +30,7 @@ export const CardHeader = ({
           {article.title}
         </h3>
         <p className="text-xs text-gray-500">
-          {article.authors?.join(', ')}
+          {article.authors}
         </p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
@@ -38,7 +39,7 @@ export const CardHeader = ({
           size="icon"
           className="h-8 w-8"
           disabled={isLoadingBookmarks}
-          onClick={() => toggleBookmark(article.pmid)}
+          onClick={() => toggleBookmark(article.id)}
         >
           <Bookmark 
             className={cn(
@@ -47,16 +48,18 @@ export const CardHeader = ({
             )} 
           />
         </Button>
-        <a
-          href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Badge variant="pubmed" className="flex items-center gap-1.5">
-            PMID: {article.pmid}
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Badge>
-        </a>
+        {article.pubmed_id && (
+          <a
+            href={`https://pubmed.ncbi.nlm.nih.gov/${article.pubmed_id}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Badge variant="pubmed" className="flex items-center gap-1.5">
+              PMID: {article.pubmed_id}
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Badge>
+          </a>
+        )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="text-xs font-medium text-gray-600 hover:text-gray-900"

@@ -14,8 +14,8 @@ interface ArticleCardProps {
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { bookmarkedPmids, toggleBookmark, isLoadingBookmarks } = useBookmarks();
-  const isBookmarked = bookmarkedPmids.includes(article.pmid);
+  const { bookmarkedArticleIds, toggleBookmark, isLoadingBookmarks } = useBookmarks();
+  const isBookmarked = bookmarkedArticleIds.includes(article.id);
 
   return (
     <article className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">

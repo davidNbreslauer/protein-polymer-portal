@@ -6,16 +6,26 @@ interface TagsProps {
 }
 
 export const Tags = ({ article }: TagsProps) => {
-  if (!article.tags || article.tags.length === 0) return null;
+  // Create a combined array of all facets
+  const allFacets = [
+    ...(article.facets_protein_family || []),
+    ...(article.facets_protein_form || []),
+    ...(article.facets_expression_system || []),
+    ...(article.facets_application || []),
+    ...(article.facets_structural_motifs || []),
+    ...(article.facets_tested_properties || [])
+  ];
+  
+  if (allFacets.length === 0) return null;
   
   return (
     <div className="flex flex-wrap gap-2">
-      {article.tags.map((tag) => (
+      {allFacets.map((facet, index) => (
         <span 
-          key={tag} 
+          key={`${facet}-${index}`}
           className="px-3 py-1 text-xs rounded-full bg-gray-50 text-gray-600"
         >
-          {tag}
+          {facet}
         </span>
       ))}
     </div>
