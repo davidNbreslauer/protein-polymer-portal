@@ -6,7 +6,7 @@ import { toast } from "sonner";
 export const useBookmarks = () => {
   const queryClient = useQueryClient();
 
-  const { data: bookmarkedPmids = [], isLoading: isLoadingBookmarks } = useQuery({
+  const { data: bookmarkedArticleIds = [], isLoading: isLoadingBookmarks } = useQuery({
     queryKey: ['bookmarks'],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -14,7 +14,7 @@ export const useBookmarks = () => {
 
       const { data, error } = await supabase
         .from('bookmarks')
-        .select('article_pmid')
+        .select('article_id')
         .eq('user_id', session.session.user.id);
 
       if (error) {
@@ -22,38 +22,38 @@ export const useBookmarks = () => {
         return [];
       }
 
-      return data.map(b => b.article_pmid);
+      return data.map(b => b.article_id);
     },
   });
 
   const { mutate: toggleBookmark } = useMutation({
-    mutationFn: async (pmid: string) => {
+    mutationFn: async (articleId: number) => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
         throw new Error('Must be logged in to bookmark articles');
       }
 
-      const isCurrentlyBookmarked = bookmarkedPmids.includes(pmid);
+      const isCurrentlyBookmarked = bookmarkedArticleIds.includes(articleId);
 
       if (isCurrentlyBookmarked) {
         const { error } = await supabase
           .from('bookmarks')
           .delete()
-          .eq('article_pmid', pmid)
+          .eq('article_id', articleId)
           .eq('user_id', session.session.user.id);
 
         if (error) throw error;
-        return { pmid, action: 'removed' as const };
+        return { articleId, action: 'removed' as const };
       } else {
         const { error } = await supabase
           .from('bookmarks')
           .insert({
-            article_pmid: pmid,
+            article_id: articleId,
             user_id: session.session.user.id,
           });
 
         if (error) throw error;
-        return { pmid, action: 'added' as const };
+        return { articleId, action: 'added' as const };
       }
     },
     onSuccess: (result) => {
@@ -70,7 +70,7 @@ export const useBookmarks = () => {
   });
 
   return {
-    bookmarkedPmids,
+    bookmarkedArticleIds,
     isLoadingBookmarks,
     toggleBookmark,
   };

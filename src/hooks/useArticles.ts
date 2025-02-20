@@ -11,10 +11,10 @@ interface FilterOptions {
 
 const ARTICLES_PER_PAGE = 10;
 
-const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, bookmarkedPmids: string[] = []) => {
+const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, bookmarkedArticleIds: number[] = []) => {
   try {
     // If showing bookmarks only and there are no bookmarks, return empty result
-    if (filters.showBookmarksOnly && (!bookmarkedPmids || bookmarkedPmids.length === 0)) {
+    if (filters.showBookmarksOnly && (!bookmarkedArticleIds || bookmarkedArticleIds.length === 0)) {
       return { articles: [], totalCount: 0 };
     }
 
@@ -25,7 +25,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       const { count, error: countError } = await supabase
         .from('articles')
         .select('*', { count: 'exact', head: true })
-        .in('pmid', bookmarkedPmids)
+        .in('id', bookmarkedArticleIds)
         .or(searchQuery ? `title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%` : 'title.neq.dummy');
       
       if (countError) throw countError;
@@ -42,18 +42,36 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     let query = supabase
       .from('articles')
       .select(`
-        pmid,
+        id,
+        pubmed_id,
+        doi,
         title,
         abstract,
         authors,
-        timestamp,
+        journal,
+        volume,
+        issue,
+        pages,
+        elocation_id,
+        pub_date,
+        language,
+        publication_type,
+        publication_status,
         summary,
-        conclusions
+        conclusions,
+        facets_protein_family,
+        facets_protein_form,
+        facets_expression_system,
+        facets_application,
+        facets_structural_motifs,
+        facets_tested_properties,
+        created_at,
+        updated_at
       `);
 
     // Apply bookmarks filter first if requested
     if (filters.showBookmarksOnly) {
-      query = query.in('pmid', bookmarkedPmids);
+      query = query.in('id', bookmarkedArticleIds);
     }
 
     // Apply text search filter if present
@@ -63,7 +81,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     // Apply sorting and pagination
     query = query
-      .order('timestamp', { ascending: false })
+      .order('created_at', { ascending: false })
       .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
 
     // Get the base articles
@@ -74,34 +92,36 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     // Then fetch related data for these articles
     const articlePromises = baseArticles.map(async (article) => {
-      const [proteinsResult, materialsResult, facetsResult] = await Promise.all([
+      const [proteinsResult, materialsResult, methodsResult, techniquesResult, resultsResult] = await Promise.all([
         supabase
           .from('proteins')
-          .select('name, description, type, derived_from, production_method')
-          .eq('article_pmid', article.pmid),
+          .select('*')
+          .eq('article_id', article.id),
         supabase
           .from('materials')
-          .select('name, description, properties, key_properties')
-          .eq('article_pmid', article.pmid),
+          .select('*')
+          .eq('article_id', article.id),
         supabase
-          .from('facets')
-          .select('protein_family')
-          .eq('article_pmid', article.pmid)
+          .from('methods')
+          .select('*')
+          .eq('article_id', article.id),
+        supabase
+          .from('analysis_techniques')
+          .select('*')
+          .eq('article_id', article.id),
+        supabase
+          .from('results')
+          .select('*')
+          .eq('article_id', article.id)
       ]);
-
-      // Parse production_method string if it's in bracketed list format
-      const proteins = proteinsResult.data?.map(protein => ({
-        ...protein,
-        production_method: protein.production_method 
-          ? protein.production_method.replace(/[\[\]']/g, '').split(',').map(m => m.trim())
-          : undefined
-      })) || [];
 
       return {
         ...article,
-        proteins,
+        proteins: proteinsResult.data || [],
         materials: materialsResult.data || [],
-        facets: facetsResult.data || []
+        methods: methodsResult.data || [],
+        analysis_techniques: techniquesResult.data || [],
+        results: resultsResult.data || []
       };
     });
 
@@ -110,10 +130,8 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply protein family filter if present
     if (filters.proteinFamily?.length) {
       enrichedArticles = enrichedArticles.filter(article => 
-        article.facets.some(facet => 
-          facet.protein_family?.some(family => 
-            filters.proteinFamily?.includes(family)
-          )
+        article.facets_protein_family?.some(family => 
+          filters.proteinFamily?.includes(family)
         )
       );
     }
@@ -129,11 +147,11 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 };
 
 export const useArticles = (searchQuery: string, filters: FilterOptions = {}, page: number = 0) => {
-  const { bookmarkedPmids } = useBookmarks();
+  const { bookmarkedArticleIds } = useBookmarks();
 
   return useQuery({
-    queryKey: ['articles', searchQuery, filters, page, bookmarkedPmids],
-    queryFn: () => fetchArticles(searchQuery, filters, page, bookmarkedPmids),
+    queryKey: ['articles', searchQuery, filters, page, bookmarkedArticleIds],
+    queryFn: () => fetchArticles(searchQuery, filters, page, bookmarkedArticleIds),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),

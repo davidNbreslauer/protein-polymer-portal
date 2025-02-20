@@ -9,206 +9,318 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      articles: {
+      analysis_techniques: {
         Row: {
-          abstract: string
-          analysis_tools: string[] | null
-          authors: string[] | null
-          conclusions: string | null
-          methods: string[] | null
-          pmid: string
-          results: Json | null
-          summary: string | null
-          tags: string[] | null
-          timestamp: string | null
-          title: string
+          article_id: number
+          created_at: string | null
+          id: number
+          technique: string
         }
         Insert: {
-          abstract: string
-          analysis_tools?: string[] | null
-          authors?: string[] | null
-          conclusions?: string | null
-          methods?: string[] | null
-          pmid: string
-          results?: Json | null
-          summary?: string | null
-          tags?: string[] | null
-          timestamp?: string | null
-          title: string
+          article_id: number
+          created_at?: string | null
+          id?: number
+          technique: string
         }
         Update: {
-          abstract?: string
-          analysis_tools?: string[] | null
-          authors?: string[] | null
+          article_id?: number
+          created_at?: string | null
+          id?: number
+          technique?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_techniques_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articles: {
+        Row: {
+          abstract: string | null
+          authors: string | null
+          conclusions: string | null
+          created_at: string | null
+          doi: string | null
+          elocation_id: string | null
+          facets_application: string[] | null
+          facets_expression_system: string[] | null
+          facets_protein_family: string[] | null
+          facets_protein_form: string[] | null
+          facets_structural_motifs: string[] | null
+          facets_tested_properties: string[] | null
+          id: number
+          issue: string | null
+          journal: string | null
+          language: string | null
+          pages: string | null
+          pub_date: string | null
+          publication_status: string | null
+          publication_type: string | null
+          pubmed_id: string | null
+          summary: string | null
+          title: string
+          updated_at: string | null
+          volume: string | null
+        }
+        Insert: {
+          abstract?: string | null
+          authors?: string | null
           conclusions?: string | null
-          methods?: string[] | null
-          pmid?: string
-          results?: Json | null
+          created_at?: string | null
+          doi?: string | null
+          elocation_id?: string | null
+          facets_application?: string[] | null
+          facets_expression_system?: string[] | null
+          facets_protein_family?: string[] | null
+          facets_protein_form?: string[] | null
+          facets_structural_motifs?: string[] | null
+          facets_tested_properties?: string[] | null
+          id?: number
+          issue?: string | null
+          journal?: string | null
+          language?: string | null
+          pages?: string | null
+          pub_date?: string | null
+          publication_status?: string | null
+          publication_type?: string | null
+          pubmed_id?: string | null
           summary?: string | null
-          tags?: string[] | null
-          timestamp?: string | null
+          title: string
+          updated_at?: string | null
+          volume?: string | null
+        }
+        Update: {
+          abstract?: string | null
+          authors?: string | null
+          conclusions?: string | null
+          created_at?: string | null
+          doi?: string | null
+          elocation_id?: string | null
+          facets_application?: string[] | null
+          facets_expression_system?: string[] | null
+          facets_protein_family?: string[] | null
+          facets_protein_form?: string[] | null
+          facets_structural_motifs?: string[] | null
+          facets_tested_properties?: string[] | null
+          id?: number
+          issue?: string | null
+          journal?: string | null
+          language?: string | null
+          pages?: string | null
+          pub_date?: string | null
+          publication_status?: string | null
+          publication_type?: string | null
+          pubmed_id?: string | null
+          summary?: string | null
           title?: string
+          updated_at?: string | null
+          volume?: string | null
         }
         Relationships: []
       }
       bookmarks: {
         Row: {
-          article_pmid: string
+          article_id: number
           created_at: string
           id: string
           user_id: string
         }
         Insert: {
-          article_pmid: string
+          article_id: number
           created_at?: string
           id?: string
           user_id: string
         }
         Update: {
-          article_pmid?: string
+          article_id?: number
           created_at?: string
           id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "bookmarks_article_pmid_fkey"
-            columns: ["article_pmid"]
+            foreignKeyName: "bookmarks_article_id_fkey"
+            columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "articles"
-            referencedColumns: ["pmid"]
-          },
-        ]
-      }
-      facets: {
-        Row: {
-          application: string[] | null
-          article_pmid: string | null
-          id: string
-          protein_family: string[] | null
-          protein_form: string[] | null
-          structural_motifs: string[] | null
-          tested_properties: string[] | null
-        }
-        Insert: {
-          application?: string[] | null
-          article_pmid?: string | null
-          id?: string
-          protein_family?: string[] | null
-          protein_form?: string[] | null
-          structural_motifs?: string[] | null
-          tested_properties?: string[] | null
-        }
-        Update: {
-          application?: string[] | null
-          article_pmid?: string | null
-          id?: string
-          protein_family?: string[] | null
-          protein_form?: string[] | null
-          structural_motifs?: string[] | null
-          tested_properties?: string[] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "facets_article_pmid_fkey"
-            columns: ["article_pmid"]
-            isOneToOne: false
-            referencedRelation: "articles"
-            referencedColumns: ["pmid"]
+            referencedColumns: ["id"]
           },
         ]
       }
       materials: {
         Row: {
-          article_pmid: string | null
+          article_id: number
           composition: string | null
+          created_at: string | null
           description: string | null
           fabrication_method: string | null
-          id: string
+          id: number
           key_properties: string[] | null
           name: string
           potential_applications: string[] | null
-          properties: string[] | null
+          updated_at: string | null
         }
         Insert: {
-          article_pmid?: string | null
+          article_id: number
           composition?: string | null
+          created_at?: string | null
           description?: string | null
           fabrication_method?: string | null
-          id?: string
+          id?: number
           key_properties?: string[] | null
           name: string
           potential_applications?: string[] | null
-          properties?: string[] | null
+          updated_at?: string | null
         }
         Update: {
-          article_pmid?: string | null
+          article_id?: number
           composition?: string | null
+          created_at?: string | null
           description?: string | null
           fabrication_method?: string | null
-          id?: string
+          id?: number
           key_properties?: string[] | null
           name?: string
           potential_applications?: string[] | null
-          properties?: string[] | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "materials_article_pmid_fkey"
-            columns: ["article_pmid"]
+            foreignKeyName: "materials_article_id_fkey"
+            columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "articles"
-            referencedColumns: ["pmid"]
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      methods: {
+        Row: {
+          article_id: number
+          created_at: string | null
+          id: number
+          method_name: string
+        }
+        Insert: {
+          article_id: number
+          created_at?: string | null
+          id?: number
+          method_name: string
+        }
+        Update: {
+          article_id?: number
+          created_at?: string | null
+          id?: number
+          method_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "methods_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
           },
         ]
       }
       proteins: {
         Row: {
-          article_pmid: string | null
-          derived_from: string[] | null
+          applications: string[] | null
+          article_id: number
+          created_at: string | null
+          derived_from: string | null
           description: string | null
-          id: string
+          expression_system: string | null
+          id: number
           key_properties: string[] | null
           name: string
-          production: string | null
           production_method: string | null
+          protein_family: string | null
+          protein_form: string | null
           role_in_study: string | null
-          tags: Json | null
+          structural_motifs: string[] | null
           type: string | null
+          updated_at: string | null
         }
         Insert: {
-          article_pmid?: string | null
-          derived_from?: string[] | null
+          applications?: string[] | null
+          article_id: number
+          created_at?: string | null
+          derived_from?: string | null
           description?: string | null
-          id?: string
+          expression_system?: string | null
+          id?: number
           key_properties?: string[] | null
           name: string
-          production?: string | null
           production_method?: string | null
+          protein_family?: string | null
+          protein_form?: string | null
           role_in_study?: string | null
-          tags?: Json | null
+          structural_motifs?: string[] | null
           type?: string | null
+          updated_at?: string | null
         }
         Update: {
-          article_pmid?: string | null
-          derived_from?: string[] | null
+          applications?: string[] | null
+          article_id?: number
+          created_at?: string | null
+          derived_from?: string | null
           description?: string | null
-          id?: string
+          expression_system?: string | null
+          id?: number
           key_properties?: string[] | null
           name?: string
-          production?: string | null
           production_method?: string | null
+          protein_family?: string | null
+          protein_form?: string | null
           role_in_study?: string | null
-          tags?: Json | null
+          structural_motifs?: string[] | null
           type?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "proteins_article_pmid_fkey"
-            columns: ["article_pmid"]
+            foreignKeyName: "proteins_article_id_fkey"
+            columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "articles"
-            referencedColumns: ["pmid"]
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      results: {
+        Row: {
+          article_id: number
+          created_at: string | null
+          data: Json | null
+          description: string | null
+          id: number
+        }
+        Insert: {
+          article_id: number
+          created_at?: string | null
+          data?: Json | null
+          description?: string | null
+          id?: number
+        }
+        Update: {
+          article_id?: number
+          created_at?: string | null
+          data?: Json | null
+          description?: string | null
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
           },
         ]
       }
