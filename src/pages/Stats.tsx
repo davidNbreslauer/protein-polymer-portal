@@ -39,10 +39,12 @@ const Stats = () => {
     );
   }
 
-  const renderChartSection = (data: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[], title: string) => {
-    const chartData = data.filter(item => item.count > 1 && item.name);
+  const renderChartSection = (
+    data: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[],
+    title: string
+  ) => {
+    const chartData = data.filter(item => item.count > 1);
     const singleCountItems = data.filter(item => item.count === 1);
-    const noCategories = data.find(item => !item.name);
     const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
     return (
@@ -78,7 +80,7 @@ const Stats = () => {
               ) : (
                 <ChevronRight className="h-4 w-4" />
               )}
-              Categories with single occurrence ({singleCountItems.length})
+              Items with single occurrence ({singleCountItems.length})
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -86,45 +88,6 @@ const Stats = () => {
                   <span key={item.name} className="text-sm text-gray-600">
                     {item.name}
                   </span>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {noCategories && noCategories.articles && noCategories.articles.length > 0 && (
-          <Collapsible
-            open={openSections[`${sectionKey}-none`]}
-            onOpenChange={(isOpen) =>
-              setOpenSections((prev) => ({ ...prev, [`${sectionKey}-none`]: isOpen }))
-            }
-            className="mt-4"
-          >
-            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
-              {openSections[`${sectionKey}-none`] ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              Papers with no categories ({noCategories.count})
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <div className="space-y-2">
-                {noCategories.articles.map((item, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm">
-                    {item.pubmed_id && (
-                      <a
-                        href={`https://pubmed.ncbi.nlm.nih.gov/${item.pubmed_id}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 shrink-0"
-                      >
-                        PMID: {item.pubmed_id}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                    <span className="text-gray-600">{item.title}</span>
-                  </div>
                 ))}
               </div>
             </CollapsibleContent>
@@ -156,24 +119,12 @@ const Stats = () => {
         )}
       </div>
       
-      {stats.proteinFamilies.length > 0 && (
-        renderChartSection(stats.proteinFamilies, "Protein Families Distribution")
+      {stats.proteins.length > 0 && (
+        renderChartSection(stats.proteins, "Proteins Distribution")
       )}
       
-      {stats.proteinForms.length > 0 && (
-        renderChartSection(stats.proteinForms, "Protein Forms Distribution")
-      )}
-      
-      {stats.expressionSystems.length > 0 && (
-        renderChartSection(stats.expressionSystems, "Expression Systems Distribution")
-      )}
-      
-      {stats.applications.length > 0 && (
-        renderChartSection(stats.applications, "Applications Distribution")
-      )}
-
-      {stats.materialProperties.length > 0 && (
-        renderChartSection(stats.materialProperties, "Material Properties Distribution")
+      {stats.materials.length > 0 && (
+        renderChartSection(stats.materials, "Materials Distribution")
       )}
     </div>
   );
