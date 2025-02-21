@@ -60,16 +60,16 @@ const Stats = () => {
         renderChart(stats.proteinFamilies, "Protein Families Distribution")
       )}
       
+      {stats.proteinForms.length > 0 && (
+        renderChart(stats.proteinForms, "Protein Forms Distribution")
+      )}
+      
       {stats.expressionSystems.length > 0 && (
         renderChart(stats.expressionSystems, "Expression Systems Distribution")
       )}
       
       {stats.applications.length > 0 && (
         renderChart(stats.applications, "Applications Distribution")
-      )}
-      
-      {stats.proteinForms.length > 0 && (
-        renderChart(stats.proteinForms, "Protein Forms Distribution")
       )}
     </div>
   );
