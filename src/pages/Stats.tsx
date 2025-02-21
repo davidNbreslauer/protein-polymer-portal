@@ -4,12 +4,15 @@ import { useArticleStats } from '@/hooks/useArticleStats';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink, ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Stats = () => {
   const { data: stats, isLoading, error } = useArticleStats();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -133,7 +136,19 @@ const Stats = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Article Statistics</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Home
+        </Button>
+        <h1 className="text-2xl font-bold">Article Statistics</h1>
+      </div>
+
       <div className="flex flex-col gap-1 mb-6">
         <p>Total number of articles: {stats.totalArticles}</p>
         {stats.mostRecentDate && (
