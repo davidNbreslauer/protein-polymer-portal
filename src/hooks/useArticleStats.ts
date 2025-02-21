@@ -39,14 +39,11 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
   // Helper function to count occurrences case-insensitively
   const countFacets = (arrays: { id: number, facets: (string[] | null), pubmed_id?: string, title: string }[]): { name: string; count: number; pubmed_id?: string; title?: string }[] => {
     const counts = new Map<string, { originalName: string; count: number; articles: { pubmed_id?: string; title: string }[] }>();
+    let noFacetsArticles: { pubmed_id?: string; title: string }[] = [];
     
     arrays.forEach(({ facets, pubmed_id, title }) => {
       if (!facets || facets.length === 0) {
-        counts.set('', {
-          originalName: '',
-          count: (counts.get('')?.count || 0) + 1,
-          articles: [...(counts.get('')?.articles || []), { pubmed_id, title }]
-        });
+        noFacetsArticles.push({ pubmed_id, title });
       } else {
         facets.forEach(item => {
           const lowerItem = item.toLowerCase();
@@ -56,7 +53,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
             counts.set(lowerItem, {
               originalName: existing.originalName,
               count: existing.count + 1,
-              articles: existing.articles
+              articles: [...existing.articles]
             });
           } else {
             counts.set(lowerItem, {
@@ -69,13 +66,24 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
       }
     });
 
-    return Array.from(counts.entries())
+    const result = Array.from(counts.entries())
       .map(([_, { originalName, count, articles }]) => ({
         name: originalName,
         count,
         ...(articles.length > 0 ? articles[0] : {})
       }))
       .sort((a, b) => b.count - a.count);
+
+    // Add the "no facets" entry if there are any articles without facets
+    if (noFacetsArticles.length > 0) {
+      result.push({
+        name: '',
+        count: noFacetsArticles.length,
+        ...noFacetsArticles[0]
+      });
+    }
+
+    return result;
   };
 
   if (articles) {
