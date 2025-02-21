@@ -41,23 +41,6 @@ const Stats = () => {
     const singleCountItems = data.filter(item => item.count === 1);
     const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
-    // Custom tick formatter that only shows labels for specific indices
-    const customYAxisTick = (props: any) => {
-      const { x, y, payload } = props;
-      const index = chartData.findIndex(item => item.name === payload.value);
-      
-      // Only show label if it's the first item (highest count) or if there's enough space
-      const shouldShowLabel = index === 0 || y > 30;
-      
-      if (!shouldShowLabel) return null;
-
-      return (
-        <text x={x} y={y} dy={4} textAnchor="end" fill="#666" fontSize={12}>
-          {payload.value}
-        </text>
-      );
-    };
-
     return (
       <Card className="p-4 mb-6">
         <h2 className="text-xl font-semibold mb-4">{title}</h2>
@@ -68,12 +51,7 @@ const Stats = () => {
                 <BarChart data={chartData} layout="vertical" margin={{ left: 150 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={140} 
-                    tick={customYAxisTick}
-                  />
+                  <YAxis type="category" dataKey="name" width={140} />
                   <Tooltip />
                   <Bar dataKey="count" fill="#4f46e5" />
                 </BarChart>
