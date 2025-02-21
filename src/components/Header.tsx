@@ -1,11 +1,12 @@
 
-import { Database, LogIn, LogOut, User } from "lucide-react";
+import { BarChart2, Database, LogIn, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
 import { Session } from "@supabase/supabase-js";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   searchQuery: string;
@@ -122,9 +123,18 @@ export const Header = ({ searchQuery, onSearchChange }: HeaderProps) => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white px-4 py-6">
       <div className="max-w-7xl mx-auto space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Database className="w-6 h-6" />
-            <h1 className="text-xl font-semibold">Protein Polymer Research Database</h1>
+          <div className="flex items-center">
+            <div className="flex items-center space-x-3">
+              <Database className="w-6 h-6" />
+              <h1 className="text-xl font-semibold">Protein Polymer Research Database</h1>
+            </div>
+            <Link
+              to="/stats"
+              className="ml-4 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <BarChart2 className="w-5 h-5" />
+              <span className="text-sm">Stats</span>
+            </Link>
           </div>
           
           <div className="flex items-center gap-4">
