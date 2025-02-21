@@ -30,7 +30,9 @@ export const CardHeader = ({
     // Try parsing the date from common formats
     const possibleFormats = [
       'yyyy MMMM',
+      'yyyy MMM',
       'MMMM yyyy',
+      'MMM yyyy',
       'yyyy-MM-dd',
       'yyyy/MM/dd',
       'MM/dd/yyyy',
@@ -39,28 +41,52 @@ export const CardHeader = ({
       'yyyy-MM-dd\'T\'HH:mm:ssX'
     ];
 
-    for (const dateFormat of possibleFormats) {
+    // First try to parse "2025 May" type format directly
+    const yearMonthMatch = article.pub_date.match(/^(\d{4})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/i);
+    if (yearMonthMatch) {
       try {
-        const parsedDate = parse(article.pub_date, dateFormat, new Date());
+        const year = yearMonthMatch[1];
+        const month = yearMonthMatch[2];
+        const dateString = `${year} ${month}`;
+        const parsedDate = parse(dateString, 'yyyy MMM', new Date());
         if (isValid(parsedDate)) {
           formattedDate = format(parsedDate, 'MMMM yyyy');
-          break;
         }
-      } catch {
-        continue;
+      } catch (error) {
+        console.warn('Failed to parse year-month format:', article.pub_date, error);
       }
     }
 
-    // If none of the formats work, try direct Date parsing as a fallback
+    // If the special case didn't work, try other formats
     if (!formattedDate) {
-      try {
-        const directDate = new Date(article.pub_date);
-        if (isValid(directDate)) {
-          formattedDate = format(directDate, 'MMMM yyyy');
+      for (const dateFormat of possibleFormats) {
+        try {
+          const parsedDate = parse(article.pub_date, dateFormat, new Date());
+          if (isValid(parsedDate)) {
+            formattedDate = format(parsedDate, 'MMMM yyyy');
+            break;
+          }
+        } catch {
+          continue;
         }
-      } catch {
-        console.warn('Could not parse date:', article.pub_date);
       }
+
+      // If none of the formats work, try direct Date parsing as a fallback
+      if (!formattedDate) {
+        try {
+          const directDate = new Date(article.pub_date);
+          if (isValid(directDate)) {
+            formattedDate = format(directDate, 'MMMM yyyy');
+          }
+        } catch (error) {
+          console.warn('Could not parse date:', article.pub_date, error);
+        }
+      }
+    }
+
+    // If we still couldn't parse the date, log it for debugging
+    if (!formattedDate) {
+      console.warn('Unable to parse date format:', article.pub_date);
     }
   }
 
