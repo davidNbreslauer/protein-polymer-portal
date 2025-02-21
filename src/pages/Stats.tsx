@@ -3,9 +3,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useArticleStats } from '@/hooks/useArticleStats';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 const Stats = () => {
   const { data: stats, isLoading, error } = useArticleStats();
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   if (isLoading) {
     return (
@@ -35,6 +39,7 @@ const Stats = () => {
   const renderChartSection = (data: { name: string; count: number }[], title: string) => {
     const chartData = data.filter(item => item.count > 1);
     const singleCountItems = data.filter(item => item.count === 1);
+    const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
     return (
       <Card className="p-4 mb-6">
@@ -55,16 +60,31 @@ const Stats = () => {
           </ScrollArea>
         )}
         {singleCountItems.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Categories with single occurrence:</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {singleCountItems.map((item) => (
-                <span key={item.name} className="text-sm text-gray-600">
-                  {item.name}
-                </span>
-              ))}
-            </div>
-          </div>
+          <Collapsible
+            open={openSections[sectionKey]}
+            onOpenChange={(isOpen) =>
+              setOpenSections((prev) => ({ ...prev, [sectionKey]: isOpen }))
+            }
+            className="mt-4"
+          >
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+              {openSections[sectionKey] ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+              Categories with single occurrence ({singleCountItems.length})
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                {singleCountItems.map((item) => (
+                  <span key={item.name} className="text-sm text-gray-600">
+                    {item.name}
+                  </span>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </Card>
     );
