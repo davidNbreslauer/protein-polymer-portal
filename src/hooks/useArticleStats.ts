@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ArticleStats {
-  proteinFamilies: { name: string; count: number; pubmed_id?: string; title?: string }[];
-  expressionSystems: { name: string; count: number; pubmed_id?: string; title?: string }[];
-  applications: { name: string; count: number; pubmed_id?: string; title?: string }[];
-  proteinForms: { name: string; count: number; pubmed_id?: string; title?: string }[];
+  proteinFamilies: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
+  expressionSystems: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
+  applications: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
+  proteinForms: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
   totalArticles: number;
   mostRecentDate: string | null;
 }
@@ -37,7 +37,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
   };
 
   // Helper function to count occurrences case-insensitively
-  const countFacets = (arrays: { id: number, facets: (string[] | null), pubmed_id?: string, title: string }[]): { name: string; count: number; pubmed_id?: string; title?: string }[] => {
+  const countFacets = (arrays: { id: number, facets: (string[] | null), pubmed_id?: string, title: string }[]): { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[] => {
     const counts = new Map<string, { originalName: string; count: number; articles: { pubmed_id?: string; title: string }[] }>();
     let noFacetsArticles: { pubmed_id?: string; title: string }[] = [];
     
@@ -70,7 +70,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
       .map(([_, { originalName, count, articles }]) => ({
         name: originalName,
         count,
-        ...(articles.length > 0 ? articles[0] : {})
+        articles
       }))
       .sort((a, b) => b.count - a.count);
 
@@ -79,7 +79,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
       result.push({
         name: '',
         count: noFacetsArticles.length,
-        ...noFacetsArticles[0]
+        articles: noFacetsArticles
       });
     }
 

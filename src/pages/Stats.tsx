@@ -36,10 +36,10 @@ const Stats = () => {
     );
   }
 
-  const renderChartSection = (data: { name: string; count: number; pubmed_id?: string; title?: string }[], title: string) => {
-    const chartData = data.filter(item => item.count > 1);
+  const renderChartSection = (data: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[], title: string) => {
+    const chartData = data.filter(item => item.count > 1 && item.name);
     const singleCountItems = data.filter(item => item.count === 1);
-    const noCategories = data.filter(item => !item.name);
+    const noCategories = data.find(item => !item.name);
     const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
     return (
@@ -89,7 +89,7 @@ const Stats = () => {
           </Collapsible>
         )}
 
-        {noCategories.length > 0 && (
+        {noCategories && noCategories.articles && noCategories.articles.length > 0 && (
           <Collapsible
             open={openSections[`${sectionKey}-none`]}
             onOpenChange={(isOpen) =>
@@ -103,11 +103,11 @@ const Stats = () => {
               ) : (
                 <ChevronRight className="h-4 w-4" />
               )}
-              Papers with no categories ({noCategories.length})
+              Papers with no categories ({noCategories.count})
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <div className="space-y-2">
-                {noCategories.map((item, index) => (
+                {noCategories.articles.map((item, index) => (
                   <div key={index} className="flex items-start gap-2 text-sm">
                     {item.pubmed_id && (
                       <a
