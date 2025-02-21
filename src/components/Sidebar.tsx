@@ -1,14 +1,18 @@
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Filter } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Label } from "./ui/label";
 
 interface SidebarProps {
-  onFilterChange: (filters: { proteinFamily: string[], showBookmarksOnly?: boolean }) => void;
+  onFilterChange: (filters: { proteinFamily: string[], showBookmarksOnly?: boolean, sortDirection?: 'asc' | 'desc' }) => void;
 }
 
 export const Sidebar = ({ onFilterChange }: SidebarProps) => {
   const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
   const handleProteinFamilyChange = (family: string) => {
     const updatedFamilies = selectedProteinFamilies.includes(family)
@@ -16,18 +20,24 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
       : [...selectedProteinFamilies, family];
     
     setSelectedProteinFamilies(updatedFamilies);
-    onFilterChange({ proteinFamily: updatedFamilies, showBookmarksOnly });
+    onFilterChange({ proteinFamily: updatedFamilies, showBookmarksOnly, sortDirection });
   };
 
   const handleBookmarksToggle = (checked: boolean) => {
     setShowBookmarksOnly(checked);
-    onFilterChange({ proteinFamily: selectedProteinFamilies, showBookmarksOnly: checked });
+    onFilterChange({ proteinFamily: selectedProteinFamilies, showBookmarksOnly: checked, sortDirection });
+  };
+
+  const handleSortDirectionChange = (value: 'asc' | 'desc') => {
+    setSortDirection(value);
+    onFilterChange({ proteinFamily: selectedProteinFamilies, showBookmarksOnly, sortDirection: value });
   };
 
   const handleClearAll = () => {
     setSelectedProteinFamilies([]);
     setShowBookmarksOnly(false);
-    onFilterChange({ proteinFamily: [], showBookmarksOnly: false });
+    setSortDirection('desc');
+    onFilterChange({ proteinFamily: [], showBookmarksOnly: false, sortDirection: 'desc' });
   };
 
   return (
@@ -49,6 +59,25 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
         </div>
 
         <div className="p-4 space-y-6">
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Sort by Date</h3>
+            <RadioGroup
+              defaultValue="desc"
+              value={sortDirection}
+              onValueChange={handleSortDirectionChange}
+              className="flex flex-col space-y-1"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="desc" id="sort-desc" />
+                <Label htmlFor="sort-desc">Newest First</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="asc" id="sort-asc" />
+                <Label htmlFor="sort-asc">Oldest First</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <div className="space-y-3">
             <h3 className="text-sm font-medium">View Options</h3>
             <div className="space-y-2">

@@ -7,6 +7,7 @@ import { useBookmarks } from "./useBookmarks";
 interface FilterOptions {
   proteinFamily?: string[];
   showBookmarksOnly?: boolean;
+  sortDirection?: 'asc' | 'desc';
 }
 
 const ARTICLES_PER_PAGE = 10;
@@ -60,12 +61,13 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
     }
 
-    // Apply sorting and pagination
-    query = query
-      .order('created_at', { ascending: false })
-      .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
+    // Apply sorting (default to descending if not specified)
+    query = query.order('pub_date', { ascending: filters.sortDirection === 'asc' });
 
-    console.log('Fetching articles with query:', query); // Debug log
+    // Apply pagination
+    query = query.range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
+
+    console.log('Fetching articles with query:', query);
 
     // Execute the query
     const { data: articles, error } = await query;
@@ -80,7 +82,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       return { articles: [], totalCount: 0 };
     }
 
-    console.log('Fetched articles:', articles); // Debug log
+    console.log('Fetched articles:', articles);
 
     // Filter by protein family if specified
     let filteredArticles = articles;

@@ -9,7 +9,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ proteinFamily: [] as string[] });
+  const [filters, setFilters] = useState({ 
+    proteinFamily: [] as string[], 
+    showBookmarksOnly: false,
+    sortDirection: 'desc' as 'asc' | 'desc'
+  });
   const [currentPage, setCurrentPage] = useState(0);
   
   const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage);
@@ -22,8 +26,12 @@ const Index = () => {
     setCurrentPage(0); // Reset to first page on new search
   };
 
-  const handleFilterChange = (newFilters: { proteinFamily: string[] }) => {
-    setFilters(newFilters);
+  const handleFilterChange = (newFilters: { 
+    proteinFamily: string[], 
+    showBookmarksOnly?: boolean,
+    sortDirection?: 'asc' | 'desc'
+  }) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(0); // Reset to first page on filter change
   };
 
