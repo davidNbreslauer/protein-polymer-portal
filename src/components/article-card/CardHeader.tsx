@@ -29,6 +29,8 @@ export const CardHeader = ({
   if (article.pub_date) {
     // Try parsing the date from common formats
     const possibleFormats = [
+      'yyyy MMMM',
+      'MMMM yyyy',
       'yyyy-MM-dd',
       'yyyy/MM/dd',
       'MM/dd/yyyy',
@@ -38,18 +40,26 @@ export const CardHeader = ({
     ];
 
     for (const dateFormat of possibleFormats) {
-      const parsedDate = parse(article.pub_date, dateFormat, new Date());
-      if (isValid(parsedDate)) {
-        formattedDate = format(parsedDate, 'MMM d, yyyy');
-        break;
+      try {
+        const parsedDate = parse(article.pub_date, dateFormat, new Date());
+        if (isValid(parsedDate)) {
+          formattedDate = format(parsedDate, 'MMMM yyyy');
+          break;
+        }
+      } catch {
+        continue;
       }
     }
 
     // If none of the formats work, try direct Date parsing as a fallback
     if (!formattedDate) {
-      const directDate = new Date(article.pub_date);
-      if (isValid(directDate)) {
-        formattedDate = format(directDate, 'MMM d, yyyy');
+      try {
+        const directDate = new Date(article.pub_date);
+        if (isValid(directDate)) {
+          formattedDate = format(directDate, 'MMMM yyyy');
+        }
+      } catch {
+        console.warn('Could not parse date:', article.pub_date);
       }
     }
   }
