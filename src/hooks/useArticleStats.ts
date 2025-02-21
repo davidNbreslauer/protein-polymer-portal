@@ -8,6 +8,7 @@ interface ArticleStats {
   applications: { name: string; count: number }[];
   proteinForms: { name: string; count: number }[];
   totalArticles: number;
+  mostRecentDate: string | null;
 }
 
 const fetchArticleStats = async (): Promise<ArticleStats> => {
@@ -17,14 +18,22 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
 
   const { data: articles } = await supabase
     .from('articles')
-    .select('facets_protein_family, facets_expression_system, facets_application, facets_protein_form');
+    .select('facets_protein_family, facets_expression_system, facets_application, facets_protein_form, pub_date');
+
+  const { data: mostRecent } = await supabase
+    .from('articles')
+    .select('pub_date')
+    .order('pub_date', { ascending: false })
+    .limit(1)
+    .single();
 
   const stats: ArticleStats = {
     proteinFamilies: [],
     expressionSystems: [],
     applications: [],
     proteinForms: [],
-    totalArticles: count || 0
+    totalArticles: count || 0,
+    mostRecentDate: mostRecent?.pub_date || null
   };
 
   // Helper function to count occurrences case-insensitively

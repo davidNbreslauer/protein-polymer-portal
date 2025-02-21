@@ -93,7 +93,12 @@ const Stats = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Article Statistics</h1>
-      <p className="mb-6">Total number of articles: {stats.totalArticles}</p>
+      <div className="flex flex-col gap-1 mb-6">
+        <p>Total number of articles: {stats.totalArticles}</p>
+        {stats.mostRecentDate && (
+          <p>Most recent article: {stats.mostRecentDate}</p>
+        )}
+      </div>
       
       {stats.proteinFamilies.length > 0 && (
         renderChartSection(stats.proteinFamilies, "Protein Families Distribution")
