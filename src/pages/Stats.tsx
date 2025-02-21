@@ -32,24 +32,43 @@ const Stats = () => {
     );
   }
 
-  const renderChart = (data: { name: string; count: number }[], title: string) => (
-    <Card className="p-4 mb-6">
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
-      <ScrollArea className="h-[400px] w-full">
-        <div className="min-w-[800px]">
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={data} layout="vertical" margin={{ left: 150 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis type="category" dataKey="name" width={140} />
-              <Tooltip />
-              <Bar dataKey="count" fill="#4f46e5" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </ScrollArea>
-    </Card>
-  );
+  const renderChartSection = (data: { name: string; count: number }[], title: string) => {
+    const chartData = data.filter(item => item.count > 1);
+    const singleCountItems = data.filter(item => item.count === 1);
+
+    return (
+      <Card className="p-4 mb-6">
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
+        {chartData.length > 0 && (
+          <ScrollArea className="h-[400px] w-full">
+            <div className="min-w-[800px]">
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={chartData} layout="vertical" margin={{ left: 150 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis type="category" dataKey="name" width={140} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#4f46e5" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </ScrollArea>
+        )}
+        {singleCountItems.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Categories with single occurrence:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {singleCountItems.map((item) => (
+                <span key={item.name} className="text-sm text-gray-600">
+                  {item.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </Card>
+    );
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -57,19 +76,19 @@ const Stats = () => {
       <p className="mb-6">Total number of articles: {stats.totalArticles}</p>
       
       {stats.proteinFamilies.length > 0 && (
-        renderChart(stats.proteinFamilies, "Protein Families Distribution")
+        renderChartSection(stats.proteinFamilies, "Protein Families Distribution")
       )}
       
       {stats.proteinForms.length > 0 && (
-        renderChart(stats.proteinForms, "Protein Forms Distribution")
+        renderChartSection(stats.proteinForms, "Protein Forms Distribution")
       )}
       
       {stats.expressionSystems.length > 0 && (
-        renderChart(stats.expressionSystems, "Expression Systems Distribution")
+        renderChartSection(stats.expressionSystems, "Expression Systems Distribution")
       )}
       
       {stats.applications.length > 0 && (
-        renderChart(stats.applications, "Applications Distribution")
+        renderChartSection(stats.applications, "Applications Distribution")
       )}
     </div>
   );
