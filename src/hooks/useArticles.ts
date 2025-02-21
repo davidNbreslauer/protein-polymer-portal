@@ -38,38 +38,51 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       totalCount = countData || 0;
     }
 
-    // Start building the main query
+    // Start building the query for articles with all fields
     let query = supabase
       .from('articles')
       .select(`
-        id,
-        pubmed_id,
-        doi,
-        title,
-        abstract,
-        authors,
-        journal,
-        volume,
-        issue,
-        pages,
-        elocation_id,
-        pub_date,
-        language,
-        publication_type,
-        publication_status,
-        summary,
-        conclusions,
-        facets_protein_family,
-        facets_protein_form,
-        facets_expression_system,
-        facets_application,
-        facets_structural_motifs,
-        facets_tested_properties,
-        created_at,
-        updated_at
+        *,
+        proteins (
+          id,
+          name,
+          description,
+          type,
+          derived_from,
+          production_method,
+          role_in_study,
+          key_properties,
+          applications,
+          structural_motifs,
+          protein_family,
+          protein_form,
+          expression_system
+        ),
+        materials (
+          id,
+          name,
+          description,
+          composition,
+          fabrication_method,
+          key_properties,
+          potential_applications
+        ),
+        methods (
+          id,
+          method_name
+        ),
+        analysis_techniques (
+          id,
+          technique
+        ),
+        results (
+          id,
+          description,
+          data
+        )
       `);
 
-    // Apply bookmarks filter first if requested
+    // Apply bookmarks filter if requested
     if (filters.showBookmarksOnly) {
       query = query.in('id', bookmarkedArticleIds);
     }
@@ -84,52 +97,16 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       .order('created_at', { ascending: false })
       .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
 
-    // Get the base articles
-    const { data: baseArticles, error: baseError } = await query;
+    // Execute the query
+    const { data: articles, error } = await query;
     
-    if (baseError) throw baseError;
-    if (!baseArticles) return { articles: [], totalCount: 0 };
+    if (error) throw error;
+    if (!articles) return { articles: [], totalCount: 0 };
 
-    // Then fetch related data for these articles
-    const articlePromises = baseArticles.map(async (article) => {
-      const [proteinsResult, materialsResult, methodsResult, techniquesResult, resultsResult] = await Promise.all([
-        supabase
-          .from('proteins')
-          .select('*')
-          .eq('article_id', article.id),
-        supabase
-          .from('materials')
-          .select('*')
-          .eq('article_id', article.id),
-        supabase
-          .from('methods')
-          .select('*')
-          .eq('article_id', article.id),
-        supabase
-          .from('analysis_techniques')
-          .select('*')
-          .eq('article_id', article.id),
-        supabase
-          .from('results')
-          .select('*')
-          .eq('article_id', article.id)
-      ]);
-
-      return {
-        ...article,
-        proteins: proteinsResult.data || [],
-        materials: materialsResult.data || [],
-        methods: methodsResult.data || [],
-        analysis_techniques: techniquesResult.data || [],
-        results: resultsResult.data || []
-      };
-    });
-
-    let enrichedArticles = await Promise.all(articlePromises);
-
-    // Apply protein family filter if present
+    // Filter by protein family if specified
+    let filteredArticles = articles;
     if (filters.proteinFamily?.length) {
-      enrichedArticles = enrichedArticles.filter(article => 
+      filteredArticles = filteredArticles.filter(article => 
         article.facets_protein_family?.some(family => 
           filters.proteinFamily?.includes(family)
         )
@@ -137,7 +114,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     }
 
     return {
-      articles: enrichedArticles as Article[],
+      articles: filteredArticles as Article[],
       totalCount
     };
   } catch (error) {
