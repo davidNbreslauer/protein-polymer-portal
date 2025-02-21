@@ -39,6 +39,7 @@ const Stats = () => {
   const renderChartSection = (data: { name: string; count: number }[], title: string) => {
     const chartData = data.filter(item => item.count > 1);
     const singleCountItems = data.filter(item => item.count === 1);
+    const noCategories = data.filter(item => !item.name);
     const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
     return (
@@ -59,16 +60,17 @@ const Stats = () => {
             </div>
           </ScrollArea>
         )}
+        
         {singleCountItems.length > 0 && (
           <Collapsible
-            open={openSections[sectionKey]}
+            open={openSections[`${sectionKey}-single`]}
             onOpenChange={(isOpen) =>
-              setOpenSections((prev) => ({ ...prev, [sectionKey]: isOpen }))
+              setOpenSections((prev) => ({ ...prev, [`${sectionKey}-single`]: isOpen }))
             }
             className="mt-4"
           >
             <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
-              {openSections[sectionKey] ? (
+              {openSections[`${sectionKey}-single`] ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
                 <ChevronRight className="h-4 w-4" />
@@ -83,6 +85,30 @@ const Stats = () => {
                   </span>
                 ))}
               </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {noCategories.length > 0 && (
+          <Collapsible
+            open={openSections[`${sectionKey}-none`]}
+            onOpenChange={(isOpen) =>
+              setOpenSections((prev) => ({ ...prev, [`${sectionKey}-none`]: isOpen }))
+            }
+            className="mt-4"
+          >
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+              {openSections[`${sectionKey}-none`] ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+              Papers with no categories ({noCategories.length})
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <p className="text-sm text-gray-600">
+                There {noCategories.length === 1 ? 'is' : 'are'} {noCategories.length} paper{noCategories.length === 1 ? '' : 's'} with no {title.toLowerCase()} categorization.
+              </p>
             </CollapsibleContent>
           </Collapsible>
         )}
