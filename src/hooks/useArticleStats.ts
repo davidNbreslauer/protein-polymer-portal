@@ -13,12 +13,14 @@ interface ArticleStats {
 }
 
 const fetchArticleStats = async (): Promise<ArticleStats> => {
+  console.log('Fetching article stats...');
+  
   const { count } = await supabase
     .from('articles')
     .select('*', { count: 'exact', head: true });
 
   // Get all articles with their related proteins and materials
-  const { data: articles } = await supabase
+  const { data: articles, error } = await supabase
     .from('articles')
     .select(`
       id,
@@ -35,6 +37,13 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
         key_properties
       )
     `);
+
+  if (error) {
+    console.error('Error fetching articles:', error);
+    throw error;
+  }
+
+  console.log('Fetched articles:', articles);
 
   const { data: mostRecent } = await supabase
     .from('articles')
@@ -107,6 +116,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
         article: { pubmed_id: article.pubmed_id, title: article.title }
       })) || []
     );
+    console.log('Processing protein families:', proteinFamilies);
     stats.proteinFamilies = countItems(
       proteinFamilies.map(p => p.value),
       proteinFamilies.map(p => p.article)
@@ -119,6 +129,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
         article: { pubmed_id: article.pubmed_id, title: article.title }
       })) || []
     );
+    console.log('Processing protein forms:', proteinForms);
     stats.proteinForms = countItems(
       proteinForms.map(p => p.value),
       proteinForms.map(p => p.article)
@@ -131,6 +142,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
         article: { pubmed_id: article.pubmed_id, title: article.title }
       })) || []
     );
+    console.log('Processing expression systems:', expressionSystems);
     stats.expressionSystems = countItems(
       expressionSystems.map(p => p.value),
       expressionSystems.map(p => p.article)
@@ -145,6 +157,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
         }))
       ) || []
     );
+    console.log('Processing applications:', applications);
     stats.applications = countItems(
       applications.map(a => a.value),
       applications.map(a => a.article)
@@ -159,12 +172,14 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
         }))
       ) || []
     );
+    console.log('Processing material properties:', materialProperties);
     stats.materialProperties = countItems(
       materialProperties.map(p => p.value),
       materialProperties.map(p => p.article)
     );
   }
 
+  console.log('Final stats:', stats);
   return stats;
 };
 

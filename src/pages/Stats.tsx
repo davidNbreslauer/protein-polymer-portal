@@ -39,7 +39,21 @@ const Stats = () => {
     );
   }
 
+  // Add debug logging
+  console.log('Stats data:', {
+    proteinFamilies: stats.proteinFamilies,
+    proteinForms: stats.proteinForms,
+    expressionSystems: stats.expressionSystems,
+    applications: stats.applications,
+    materialProperties: stats.materialProperties
+  });
+
   const renderChartSection = (data: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[], title: string) => {
+    if (!data || data.length === 0) {
+      console.log(`No data for section: ${title}`);
+      return null;
+    }
+
     const chartData = data.filter(item => item.count > 1 && item.name);
     const singleCountItems = data.filter(item => item.count === 1);
     const noCategories = data.find(item => !item.name);
@@ -156,23 +170,23 @@ const Stats = () => {
         )}
       </div>
       
-      {stats.proteinFamilies.length > 0 && (
+      {stats.proteinFamilies && stats.proteinFamilies.length > 0 && (
         renderChartSection(stats.proteinFamilies, "Protein Families Distribution")
       )}
       
-      {stats.proteinForms.length > 0 && (
+      {stats.proteinForms && stats.proteinForms.length > 0 && (
         renderChartSection(stats.proteinForms, "Protein Forms Distribution")
       )}
       
-      {stats.expressionSystems.length > 0 && (
+      {stats.expressionSystems && stats.expressionSystems.length > 0 && (
         renderChartSection(stats.expressionSystems, "Expression Systems Distribution")
       )}
       
-      {stats.applications.length > 0 && (
+      {stats.applications && stats.applications.length > 0 && (
         renderChartSection(stats.applications, "Applications Distribution")
       )}
 
-      {stats.materialProperties.length > 0 && (
+      {stats.materialProperties && stats.materialProperties.length > 0 && (
         renderChartSection(stats.materialProperties, "Material Properties Distribution")
       )}
     </div>
