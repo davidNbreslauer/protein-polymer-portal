@@ -44,7 +44,7 @@ const Stats = () => {
     // Adjust font size based on the number of items
     const fontSize = chartData.length > 15 ? 10 : 12;
     const angle = chartData.length > 15 ? -45 : 0;
-    const textAnchor = angle !== 0 ? "end" : "end";
+    const textAnchor = angle !== 0 ? "end" : "middle";
     const verticalPadding = angle !== 0 ? 20 : 0;
 
     return (
@@ -68,10 +68,10 @@ const Stats = () => {
                     type="category" 
                     dataKey="name" 
                     width={140}
-                    tick={{ 
-                      fontSize: fontSize,
-                      angle: angle,
-                      textAnchor: textAnchor
+                    tick={{
+                      fontSize,
+                      textAnchor,
+                      transform: `rotate(${angle})`
                     }}
                   />
                   <Tooltip />
