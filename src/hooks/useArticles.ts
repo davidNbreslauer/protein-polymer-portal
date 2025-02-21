@@ -26,7 +26,15 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         .from('articles')
         .select('*', { count: 'exact', head: true })
         .in('id', bookmarkedArticleIds)
-        .or(searchQuery ? `title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%` : 'title.neq.dummy');
+        .or(searchQuery ? `
+          title.ilike.%${searchQuery}%,
+          abstract.ilike.%${searchQuery}%,
+          authors.ilike.%${searchQuery}%,
+          journal.ilike.%${searchQuery}%,
+          summary.ilike.%${searchQuery}%,
+          conclusions.ilike.%${searchQuery}%,
+          publication_type.ilike.%${searchQuery}%,
+          language.ilike.%${searchQuery}%` : 'title.neq.dummy');
       
       if (countError) throw countError;
       totalCount = count || 0;
@@ -55,9 +63,18 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.in('id', bookmarkedArticleIds);
     }
 
-    // Apply text search filter if present
+    // Apply text search filter across all relevant fields
     if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
+      query = query.or(`
+        title.ilike.%${searchQuery}%,
+        abstract.ilike.%${searchQuery}%,
+        authors.ilike.%${searchQuery}%,
+        journal.ilike.%${searchQuery}%,
+        summary.ilike.%${searchQuery}%,
+        conclusions.ilike.%${searchQuery}%,
+        publication_type.ilike.%${searchQuery}%,
+        language.ilike.%${searchQuery}%
+      `);
     }
 
     // Apply sorting and pagination
