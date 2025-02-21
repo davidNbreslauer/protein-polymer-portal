@@ -41,28 +41,72 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
       .limit(1)
       .single();
 
-    // Get articles without proteins
+    // Get articles without proteins, fetching full protein data
     const { data: articlesWithoutProteins } = await supabase
       .from('articles')
       .select(`
         id,
         pubmed_id,
         title,
-        proteins!inner (
-          id
+        abstract,
+        authors,
+        journal,
+        volume,
+        issue,
+        pages,
+        elocation_id,
+        pub_date,
+        language,
+        publication_type,
+        publication_status,
+        summary,
+        conclusions,
+        proteins (
+          id,
+          name,
+          description,
+          type,
+          derived_from,
+          production_method,
+          role_in_study,
+          key_properties,
+          applications,
+          structural_motifs,
+          protein_family,
+          protein_form,
+          expression_system
         )
       `)
       .is('proteins.id', null);
 
-    // Get articles without materials
+    // Get articles without materials, fetching full material data
     const { data: articlesWithoutMaterials } = await supabase
       .from('articles')
       .select(`
         id,
         pubmed_id,
         title,
-        materials!inner (
-          id
+        abstract,
+        authors,
+        journal,
+        volume,
+        issue,
+        pages,
+        elocation_id,
+        pub_date,
+        language,
+        publication_type,
+        publication_status,
+        summary,
+        conclusions,
+        materials (
+          id,
+          name,
+          description,
+          composition,
+          fabrication_method,
+          key_properties,
+          potential_applications
         )
       `)
       .is('materials.id', null);
