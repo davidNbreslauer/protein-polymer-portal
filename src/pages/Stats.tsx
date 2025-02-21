@@ -41,39 +41,17 @@ const Stats = () => {
     const singleCountItems = data.filter(item => item.count === 1);
     const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
-    // Adjust font size based on the number of items
-    const fontSize = chartData.length > 15 ? 10 : 12;
-    const angle = chartData.length > 15 ? -45 : 0;
-    const textAnchor = angle !== 0 ? "end" : "middle";
-    const verticalPadding = angle !== 0 ? 20 : 0;
-
     return (
       <Card className="p-4 mb-6">
         <h2 className="text-xl font-semibold mb-4">{title}</h2>
         {chartData.length > 0 && (
           <ScrollArea className="h-[400px] w-full">
             <div className="min-w-[800px]">
-              <ResponsiveContainer width="100%" height={350 + verticalPadding}>
-                <BarChart 
-                  data={chartData} 
-                  layout="vertical" 
-                  margin={{ 
-                    left: 150,
-                    bottom: verticalPadding 
-                  }}
-                >
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={chartData} layout="vertical" margin={{ left: 150 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={140}
-                    tick={{
-                      fontSize,
-                      textAnchor,
-                      transform: `rotate(${angle})`
-                    }}
-                  />
+                  <YAxis type="category" dataKey="name" width={140} />
                   <Tooltip />
                   <Bar dataKey="count" fill="#4f46e5" />
                 </BarChart>
