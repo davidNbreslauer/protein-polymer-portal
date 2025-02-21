@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
 import { UseMutateFunction } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 
 interface CardHeaderProps {
   article: Article;
@@ -24,7 +24,35 @@ export const CardHeader = ({
   toggleBookmark,
   isLoadingBookmarks,
 }: CardHeaderProps) => {
-  const formattedDate = article.pub_date ? format(new Date(article.pub_date), 'MMM d, yyyy') : null;
+  let formattedDate = null;
+  
+  if (article.pub_date) {
+    // Try parsing the date from common formats
+    const possibleFormats = [
+      'yyyy-MM-dd',
+      'yyyy/MM/dd',
+      'MM/dd/yyyy',
+      'dd/MM/yyyy',
+      'yyyy-MM-dd\'T\'HH:mm:ss.SSSX',
+      'yyyy-MM-dd\'T\'HH:mm:ssX'
+    ];
+
+    for (const dateFormat of possibleFormats) {
+      const parsedDate = parse(article.pub_date, dateFormat, new Date());
+      if (isValid(parsedDate)) {
+        formattedDate = format(parsedDate, 'MMM d, yyyy');
+        break;
+      }
+    }
+
+    // If none of the formats work, try direct Date parsing as a fallback
+    if (!formattedDate) {
+      const directDate = new Date(article.pub_date);
+      if (isValid(directDate)) {
+        formattedDate = format(directDate, 'MMM d, yyyy');
+      }
+    }
+  }
 
   return (
     <div className="flex items-start justify-between gap-4">
