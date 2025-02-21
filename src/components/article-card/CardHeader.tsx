@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
 import { UseMutateFunction } from "@tanstack/react-query";
+import { format } from "date-fns";
 
 interface CardHeaderProps {
   article: Article;
@@ -23,15 +24,24 @@ export const CardHeader = ({
   toggleBookmark,
   isLoadingBookmarks,
 }: CardHeaderProps) => {
+  const formattedDate = article.pub_date ? format(new Date(article.pub_date), 'MMM d, yyyy') : null;
+
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-1 flex-1">
         <h3 className="font-medium text-gray-900 text-base">
           {article.title}
         </h3>
-        <p className="text-xs text-gray-500">
-          {article.authors}
-        </p>
+        <div className="space-y-0.5">
+          <p className="text-xs text-gray-500">
+            {article.authors}
+          </p>
+          {formattedDate && (
+            <p className="text-xs text-gray-500">
+              Published: {formattedDate}
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <Button
