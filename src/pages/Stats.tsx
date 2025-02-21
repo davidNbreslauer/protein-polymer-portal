@@ -4,7 +4,7 @@ import { useArticleStats } from '@/hooks/useArticleStats';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
 const Stats = () => {
@@ -36,7 +36,7 @@ const Stats = () => {
     );
   }
 
-  const renderChartSection = (data: { name: string; count: number }[], title: string) => {
+  const renderChartSection = (data: { name: string; count: number; pubmed_id?: string; title?: string }[], title: string) => {
     const chartData = data.filter(item => item.count > 1);
     const singleCountItems = data.filter(item => item.count === 1);
     const noCategories = data.filter(item => !item.name);
@@ -106,9 +106,24 @@ const Stats = () => {
               Papers with no categories ({noCategories.length})
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
-              <p className="text-sm text-gray-600">
-                There {noCategories.length === 1 ? 'is' : 'are'} {noCategories.length} paper{noCategories.length === 1 ? '' : 's'} with no {title.toLowerCase()} categorization.
-              </p>
+              <div className="space-y-2">
+                {noCategories.map((item, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm">
+                    {item.pubmed_id && (
+                      <a
+                        href={`https://pubmed.ncbi.nlm.nih.gov/${item.pubmed_id}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 shrink-0"
+                      >
+                        PMID: {item.pubmed_id}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <span className="text-gray-600">{item.title}</span>
+                  </div>
+                ))}
+              </div>
             </CollapsibleContent>
           </Collapsible>
         )}

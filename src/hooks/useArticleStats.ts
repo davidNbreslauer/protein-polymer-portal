@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ArticleStats {
-  proteinFamilies: { name: string; count: number }[];
-  expressionSystems: { name: string; count: number }[];
-  applications: { name: string; count: number }[];
-  proteinForms: { name: string; count: number }[];
+  proteinFamilies: { name: string; count: number; pubmed_id?: string; title?: string }[];
+  expressionSystems: { name: string; count: number; pubmed_id?: string; title?: string }[];
+  applications: { name: string; count: number; pubmed_id?: string; title?: string }[];
+  proteinForms: { name: string; count: number; pubmed_id?: string; title?: string }[];
   totalArticles: number;
   mostRecentDate: string | null;
 }
@@ -18,7 +18,7 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
 
   const { data: articles } = await supabase
     .from('articles')
-    .select('facets_protein_family, facets_expression_system, facets_application, facets_protein_form, pub_date');
+    .select('id, pubmed_id, title, facets_protein_family, facets_expression_system, facets_application, facets_protein_form, pub_date');
 
   const { data: mostRecent } = await supabase
     .from('articles')
@@ -37,40 +37,60 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
   };
 
   // Helper function to count occurrences case-insensitively
-  const countFacets = (arrays: (string[] | null)[]): { name: string; count: number }[] => {
-    const counts = new Map<string, { originalName: string; count: number }>();
+  const countFacets = (arrays: { id: number, facets: (string[] | null), pubmed_id?: string, title: string }[]): { name: string; count: number; pubmed_id?: string; title?: string }[] => {
+    const counts = new Map<string, { originalName: string; count: number; articles: { pubmed_id?: string; title: string }[] }>();
     
-    arrays.forEach(arr => {
-      if (arr) {
-        arr.forEach(item => {
+    arrays.forEach(({ facets, pubmed_id, title }) => {
+      if (!facets || facets.length === 0) {
+        counts.set('', {
+          originalName: '',
+          count: (counts.get('')?.count || 0) + 1,
+          articles: [...(counts.get('')?.articles || []), { pubmed_id, title }]
+        });
+      } else {
+        facets.forEach(item => {
           const lowerItem = item.toLowerCase();
           const existing = counts.get(lowerItem);
           
           if (existing) {
-            counts.set(lowerItem, { 
-              originalName: existing.originalName, 
-              count: existing.count + 1 
+            counts.set(lowerItem, {
+              originalName: existing.originalName,
+              count: existing.count + 1,
+              articles: existing.articles
             });
           } else {
-            counts.set(lowerItem, { 
-              originalName: item, // Keep original case for display
-              count: 1 
+            counts.set(lowerItem, {
+              originalName: item,
+              count: 1,
+              articles: []
             });
           }
         });
       }
     });
 
-    return Array.from(counts.values())
-      .map(({ originalName, count }) => ({ name: originalName, count }))
+    return Array.from(counts.entries())
+      .map(([_, { originalName, count, articles }]) => ({
+        name: originalName,
+        count,
+        ...(articles.length > 0 ? articles[0] : {})
+      }))
       .sort((a, b) => b.count - a.count);
   };
 
   if (articles) {
-    stats.proteinFamilies = countFacets(articles.map(a => a.facets_protein_family));
-    stats.expressionSystems = countFacets(articles.map(a => a.facets_expression_system));
-    stats.applications = countFacets(articles.map(a => a.facets_application));
-    stats.proteinForms = countFacets(articles.map(a => a.facets_protein_form));
+    stats.proteinFamilies = countFacets(
+      articles.map(a => ({ id: a.id, facets: a.facets_protein_family, pubmed_id: a.pubmed_id, title: a.title }))
+    );
+    stats.expressionSystems = countFacets(
+      articles.map(a => ({ id: a.id, facets: a.facets_expression_system, pubmed_id: a.pubmed_id, title: a.title }))
+    );
+    stats.applications = countFacets(
+      articles.map(a => ({ id: a.id, facets: a.facets_application, pubmed_id: a.pubmed_id, title: a.title }))
+    );
+    stats.proteinForms = countFacets(
+      articles.map(a => ({ id: a.id, facets: a.facets_protein_form, pubmed_id: a.pubmed_id, title: a.title }))
+    );
   }
 
   return stats;
