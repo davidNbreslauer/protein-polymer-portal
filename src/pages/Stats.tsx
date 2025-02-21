@@ -41,7 +41,8 @@ const Stats = () => {
 
   const renderChartSection = (
     data: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[],
-    title: string
+    title: string,
+    articlesWithoutCategories: { id: number; title: string; pubmed_id?: string }[]
   ) => {
     const chartData = data.filter(item => item.count > 1);
     const singleCountItems = data.filter(item => item.count === 1);
@@ -93,6 +94,44 @@ const Stats = () => {
             </CollapsibleContent>
           </Collapsible>
         )}
+
+        {articlesWithoutCategories.length > 0 && (
+          <Collapsible
+            open={openSections[`${sectionKey}-none`]}
+            onOpenChange={(isOpen) =>
+              setOpenSections((prev) => ({ ...prev, [`${sectionKey}-none`]: isOpen }))
+            }
+            className="mt-4"
+          >
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+              {openSections[`${sectionKey}-none`] ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+              Papers with no {title.toLowerCase()} ({articlesWithoutCategories.length})
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="grid grid-cols-1 gap-2">
+                {articlesWithoutCategories.map((article) => (
+                  <div key={article.id} className="text-sm text-gray-600">
+                    {article.title}
+                    {article.pubmed_id && (
+                      <a
+                        href={`https://pubmed.ncbi.nlm.nih.gov/${article.pubmed_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 inline-flex items-center text-blue-500 hover:text-blue-700"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </Card>
     );
   };
@@ -120,11 +159,11 @@ const Stats = () => {
       </div>
       
       {stats.proteins.length > 0 && (
-        renderChartSection(stats.proteins, "Proteins Distribution")
+        renderChartSection(stats.proteins, "Proteins Distribution", stats.articlesWithoutProteins)
       )}
       
       {stats.materials.length > 0 && (
-        renderChartSection(stats.materials, "Materials Distribution")
+        renderChartSection(stats.materials, "Materials Distribution", stats.articlesWithoutMaterials)
       )}
     </div>
   );

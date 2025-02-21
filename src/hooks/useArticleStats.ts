@@ -1,12 +1,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Article } from "@/types/article";
 
 interface ArticleStats {
   proteins: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
   materials: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
   totalArticles: number;
   mostRecentDate: string | null;
+  articlesWithoutProteins: Article[];
+  articlesWithoutMaterials: Article[];
 }
 
 const fetchArticleStats = async (): Promise<ArticleStats> => {
@@ -38,11 +41,39 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
       .limit(1)
       .single();
 
+    // Get articles without proteins
+    const { data: articlesWithoutProteins } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        pubmed_id,
+        title,
+        proteins!inner (
+          id
+        )
+      `)
+      .is('proteins.id', null);
+
+    // Get articles without materials
+    const { data: articlesWithoutMaterials } = await supabase
+      .from('articles')
+      .select(`
+        id,
+        pubmed_id,
+        title,
+        materials!inner (
+          id
+        )
+      `)
+      .is('materials.id', null);
+
     const stats: ArticleStats = {
       proteins: [],
       materials: [],
       totalArticles: count || 0,
-      mostRecentDate: mostRecent?.pub_date || null
+      mostRecentDate: mostRecent?.pub_date || null,
+      articlesWithoutProteins: articlesWithoutProteins || [],
+      articlesWithoutMaterials: articlesWithoutMaterials || []
     };
 
     // Helper function to count occurrences case-insensitively
