@@ -171,6 +171,10 @@ const Stats = () => {
       {stats.applications.length > 0 && (
         renderChartSection(stats.applications, "Applications Distribution")
       )}
+
+      {stats.materialProperties.length > 0 && (
+        renderChartSection(stats.materialProperties, "Material Properties Distribution")
+      )}
     </div>
   );
 };

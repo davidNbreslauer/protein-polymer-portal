@@ -7,6 +7,7 @@ interface ArticleStats {
   expressionSystems: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
   applications: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
   proteinForms: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
+  materialProperties: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[];
   totalArticles: number;
   mostRecentDate: string | null;
 }
@@ -16,9 +17,24 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
     .from('articles')
     .select('*', { count: 'exact', head: true });
 
+  // Get all articles with their related proteins and materials
   const { data: articles } = await supabase
     .from('articles')
-    .select('id, pubmed_id, title, facets_protein_family, facets_expression_system, facets_application, facets_protein_form, pub_date');
+    .select(`
+      id,
+      pubmed_id,
+      title,
+      pub_date,
+      proteins (
+        protein_family,
+        protein_form,
+        expression_system,
+        applications
+      ),
+      materials (
+        key_properties
+      )
+    `);
 
   const { data: mostRecent } = await supabase
     .from('articles')
@@ -32,35 +48,34 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
     expressionSystems: [],
     applications: [],
     proteinForms: [],
+    materialProperties: [],
     totalArticles: count || 0,
     mostRecentDate: mostRecent?.pub_date || null
   };
 
   // Helper function to count occurrences case-insensitively
-  const countFacets = (arrays: { id: number, facets: (string[] | null), pubmed_id?: string, title: string }[]): { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[] => {
+  const countItems = (items: (string | null)[], articles: { pubmed_id?: string; title: string }[]): { name: string; count: number; articles: { pubmed_id?: string; title: string }[] }[] => {
     const counts = new Map<string, { originalName: string; count: number; articles: { pubmed_id?: string; title: string }[] }>();
-    let noFacetsArticles: { pubmed_id?: string; title: string }[] = [];
+    let noItemArticles: { pubmed_id?: string; title: string }[] = [];
     
-    arrays.forEach(({ facets, pubmed_id, title }) => {
-      if (!facets || facets.length === 0) {
-        noFacetsArticles.push({ pubmed_id, title });
+    items.forEach((item, index) => {
+      if (!item) {
+        noItemArticles.push(articles[index]);
       } else {
-        facets.forEach(item => {
-          const lowerItem = item.toLowerCase();
-          const existing = counts.get(lowerItem);
-          
-          if (existing) {
-            existing.count += 1;
-            existing.articles.push({ pubmed_id, title });
-            counts.set(lowerItem, existing);
-          } else {
-            counts.set(lowerItem, {
-              originalName: item,
-              count: 1,
-              articles: [{ pubmed_id, title }]
-            });
-          }
-        });
+        const lowerItem = item.toLowerCase();
+        const existing = counts.get(lowerItem);
+        
+        if (existing) {
+          existing.count += 1;
+          existing.articles.push(articles[index]);
+          counts.set(lowerItem, existing);
+        } else {
+          counts.set(lowerItem, {
+            originalName: item,
+            count: 1,
+            articles: [articles[index]]
+          });
+        }
       }
     });
 
@@ -72,12 +87,12 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Add the "no facets" entry if there are any articles without facets
-    if (noFacetsArticles.length > 0) {
+    // Add the "no items" entry if there are any articles without items
+    if (noItemArticles.length > 0) {
       result.push({
         name: '',
-        count: noFacetsArticles.length,
-        articles: noFacetsArticles
+        count: noItemArticles.length,
+        articles: noItemArticles
       });
     }
 
@@ -85,17 +100,68 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
   };
 
   if (articles) {
-    stats.proteinFamilies = countFacets(
-      articles.map(a => ({ id: a.id, facets: a.facets_protein_family, pubmed_id: a.pubmed_id, title: a.title }))
+    // Process protein families
+    const proteinFamilies = articles.flatMap(article => 
+      article.proteins?.map(protein => ({
+        value: protein.protein_family,
+        article: { pubmed_id: article.pubmed_id, title: article.title }
+      })) || []
     );
-    stats.expressionSystems = countFacets(
-      articles.map(a => ({ id: a.id, facets: a.facets_expression_system, pubmed_id: a.pubmed_id, title: a.title }))
+    stats.proteinFamilies = countItems(
+      proteinFamilies.map(p => p.value),
+      proteinFamilies.map(p => p.article)
     );
-    stats.applications = countFacets(
-      articles.map(a => ({ id: a.id, facets: a.facets_application, pubmed_id: a.pubmed_id, title: a.title }))
+
+    // Process protein forms
+    const proteinForms = articles.flatMap(article => 
+      article.proteins?.map(protein => ({
+        value: protein.protein_form,
+        article: { pubmed_id: article.pubmed_id, title: article.title }
+      })) || []
     );
-    stats.proteinForms = countFacets(
-      articles.map(a => ({ id: a.id, facets: a.facets_protein_form, pubmed_id: a.pubmed_id, title: a.title }))
+    stats.proteinForms = countItems(
+      proteinForms.map(p => p.value),
+      proteinForms.map(p => p.article)
+    );
+
+    // Process expression systems
+    const expressionSystems = articles.flatMap(article => 
+      article.proteins?.map(protein => ({
+        value: protein.expression_system,
+        article: { pubmed_id: article.pubmed_id, title: article.title }
+      })) || []
+    );
+    stats.expressionSystems = countItems(
+      expressionSystems.map(p => p.value),
+      expressionSystems.map(p => p.article)
+    );
+
+    // Process applications from proteins
+    const applications = articles.flatMap(article => 
+      article.proteins?.flatMap(protein => 
+        (protein.applications || []).map(app => ({
+          value: app,
+          article: { pubmed_id: article.pubmed_id, title: article.title }
+        }))
+      ) || []
+    );
+    stats.applications = countItems(
+      applications.map(a => a.value),
+      applications.map(a => a.article)
+    );
+
+    // Process material properties
+    const materialProperties = articles.flatMap(article => 
+      article.materials?.flatMap(material => 
+        (material.key_properties || []).map(prop => ({
+          value: prop,
+          article: { pubmed_id: article.pubmed_id, title: article.title }
+        }))
+      ) || []
+    );
+    stats.materialProperties = countItems(
+      materialProperties.map(p => p.value),
+      materialProperties.map(p => p.article)
     );
   }
 
