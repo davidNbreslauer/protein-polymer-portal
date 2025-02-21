@@ -38,48 +38,16 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       totalCount = countData || 0;
     }
 
-    // Start building the query for articles with all fields
+    // Build the query with proper foreign table syntax
     let query = supabase
       .from('articles')
       .select(`
         *,
-        proteins (
-          id,
-          name,
-          description,
-          type,
-          derived_from,
-          production_method,
-          role_in_study,
-          key_properties,
-          applications,
-          structural_motifs,
-          protein_family,
-          protein_form,
-          expression_system
-        ),
-        materials (
-          id,
-          name,
-          description,
-          composition,
-          fabrication_method,
-          key_properties,
-          potential_applications
-        ),
-        methods (
-          id,
-          method_name
-        ),
-        analysis_techniques (
-          id,
-          technique
-        ),
-        results (
-          id,
-          description,
-          data
-        )
+        proteins(*),
+        materials(*),
+        methods(*),
+        analysis_techniques(*),
+        results(*)
       `);
 
     // Apply bookmarks filter if requested
@@ -97,11 +65,22 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       .order('created_at', { ascending: false })
       .range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
 
+    console.log('Fetching articles with query:', query); // Debug log
+
     // Execute the query
     const { data: articles, error } = await query;
     
-    if (error) throw error;
-    if (!articles) return { articles: [], totalCount: 0 };
+    if (error) {
+      console.error('Error fetching articles:', error);
+      throw error;
+    }
+    
+    if (!articles) {
+      console.log('No articles found');
+      return { articles: [], totalCount: 0 };
+    }
+
+    console.log('Fetched articles:', articles); // Debug log
 
     // Filter by protein family if specified
     let filteredArticles = articles;
@@ -118,7 +97,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       totalCount
     };
   } catch (error) {
-    console.error('Error fetching articles:', error);
+    console.error('Error in fetchArticles:', error);
     throw error;
   }
 };
