@@ -27,18 +27,33 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
     totalArticles: count || 0
   };
 
-  // Helper function to count occurrences
+  // Helper function to count occurrences case-insensitively
   const countFacets = (arrays: (string[] | null)[]): { name: string; count: number }[] => {
-    const counts = new Map<string, number>();
+    const counts = new Map<string, { originalName: string; count: number }>();
+    
     arrays.forEach(arr => {
       if (arr) {
         arr.forEach(item => {
-          counts.set(item, (counts.get(item) || 0) + 1);
+          const lowerItem = item.toLowerCase();
+          const existing = counts.get(lowerItem);
+          
+          if (existing) {
+            counts.set(lowerItem, { 
+              originalName: existing.originalName, 
+              count: existing.count + 1 
+            });
+          } else {
+            counts.set(lowerItem, { 
+              originalName: item, // Keep original case for display
+              count: 1 
+            });
+          }
         });
       }
     });
-    return Array.from(counts.entries())
-      .map(([name, count]) => ({ name, count }))
+
+    return Array.from(counts.values())
+      .map(({ originalName, count }) => ({ name: originalName, count }))
       .sort((a, b) => b.count - a.count);
   };
 
