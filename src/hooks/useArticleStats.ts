@@ -50,16 +50,14 @@ const fetchArticleStats = async (): Promise<ArticleStats> => {
           const existing = counts.get(lowerItem);
           
           if (existing) {
-            counts.set(lowerItem, {
-              originalName: existing.originalName,
-              count: existing.count + 1,
-              articles: [...existing.articles]
-            });
+            existing.count += 1;
+            existing.articles.push({ pubmed_id, title });
+            counts.set(lowerItem, existing);
           } else {
             counts.set(lowerItem, {
               originalName: item,
               count: 1,
-              articles: []
+              articles: [{ pubmed_id, title }]
             });
           }
         });
