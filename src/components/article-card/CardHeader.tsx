@@ -90,12 +90,21 @@ export const CardHeader = ({
     }
   }
 
+  const isReview = article.publication_type?.toLowerCase().includes('review');
+
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-1 flex-1">
-        <h3 className="font-medium text-gray-900 text-base">
-          {article.title}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-gray-900 text-base">
+            {article.title}
+          </h3>
+          {isReview && (
+            <Badge variant="secondary" className="text-xs">
+              Review
+            </Badge>
+          )}
+        </div>
         <div className="space-y-0.5">
           <p className="text-xs text-gray-500">
             {article.authors}
