@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -38,7 +39,14 @@ const Index = () => {
     showReviewsOnly?: boolean,
     excludeReviews?: boolean
   }) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters(prev => ({
+      ...prev,
+      proteinFamily: newFilters.proteinFamily,
+      showBookmarksOnly: newFilters.showBookmarksOnly ?? prev.showBookmarksOnly,
+      sortDirection: newFilters.sortDirection ?? prev.sortDirection,
+      showReviewsOnly: newFilters.showReviewsOnly ?? prev.showReviewsOnly,
+      excludeReviews: newFilters.excludeReviews ?? prev.excludeReviews
+    }));
     setCurrentPage(0); // Reset to first page on filter change
   };
 
@@ -65,7 +73,7 @@ const Index = () => {
       <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
         <div className="flex gap-6">
           <div className="pt-4">
-            <Sidebar onFilterChange={setFilters} />
+            <Sidebar onFilterChange={handleFilterChange} />
           </div>
 
           <div className="flex-1 space-y-4 pt-4">
