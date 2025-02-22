@@ -12,7 +12,8 @@ const Index = () => {
   const [filters, setFilters] = useState({ 
     proteinFamily: [] as string[], 
     showBookmarksOnly: false,
-    sortDirection: 'desc' as 'asc' | 'desc'
+    sortDirection: 'desc' as 'asc' | 'desc',
+    showReviewsOnly: false
   });
   const [currentPage, setCurrentPage] = useState(0);
   
@@ -29,7 +30,8 @@ const Index = () => {
   const handleFilterChange = (newFilters: { 
     proteinFamily: string[], 
     showBookmarksOnly?: boolean,
-    sortDirection?: 'asc' | 'desc'
+    sortDirection?: 'asc' | 'desc',
+    showReviewsOnly?: boolean
   }) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(0); // Reset to first page on filter change

@@ -6,13 +6,19 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 
 interface SidebarProps {
-  onFilterChange: (filters: { proteinFamily: string[], showBookmarksOnly?: boolean, sortDirection?: 'asc' | 'desc' }) => void;
+  onFilterChange: (filters: { 
+    proteinFamily: string[], 
+    showBookmarksOnly?: boolean, 
+    sortDirection?: 'asc' | 'desc',
+    showReviewsOnly?: boolean 
+  }) => void;
 }
 
 export const Sidebar = ({ onFilterChange }: SidebarProps) => {
   const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
+  const [showReviewsOnly, setShowReviewsOnly] = useState(false);
 
   const handleProteinFamilyChange = (family: string) => {
     const updatedFamilies = selectedProteinFamilies.includes(family)
@@ -20,24 +26,55 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
       : [...selectedProteinFamilies, family];
     
     setSelectedProteinFamilies(updatedFamilies);
-    onFilterChange({ proteinFamily: updatedFamilies, showBookmarksOnly, sortDirection });
+    onFilterChange({ 
+      proteinFamily: updatedFamilies, 
+      showBookmarksOnly, 
+      sortDirection,
+      showReviewsOnly 
+    });
   };
 
   const handleBookmarksToggle = (checked: boolean) => {
     setShowBookmarksOnly(checked);
-    onFilterChange({ proteinFamily: selectedProteinFamilies, showBookmarksOnly: checked, sortDirection });
+    onFilterChange({ 
+      proteinFamily: selectedProteinFamilies, 
+      showBookmarksOnly: checked, 
+      sortDirection,
+      showReviewsOnly 
+    });
   };
 
   const handleSortDirectionChange = (value: 'asc' | 'desc') => {
     setSortDirection(value);
-    onFilterChange({ proteinFamily: selectedProteinFamilies, showBookmarksOnly, sortDirection: value });
+    onFilterChange({ 
+      proteinFamily: selectedProteinFamilies, 
+      showBookmarksOnly, 
+      sortDirection: value,
+      showReviewsOnly 
+    });
+  };
+
+  const handleReviewsToggle = (checked: boolean) => {
+    setShowReviewsOnly(checked);
+    onFilterChange({ 
+      proteinFamily: selectedProteinFamilies, 
+      showBookmarksOnly, 
+      sortDirection,
+      showReviewsOnly: checked 
+    });
   };
 
   const handleClearAll = () => {
     setSelectedProteinFamilies([]);
     setShowBookmarksOnly(false);
     setSortDirection('desc');
-    onFilterChange({ proteinFamily: [], showBookmarksOnly: false, sortDirection: 'desc' });
+    setShowReviewsOnly(false);
+    onFilterChange({ 
+      proteinFamily: [], 
+      showBookmarksOnly: false, 
+      sortDirection: 'desc',
+      showReviewsOnly: false 
+    });
   };
 
   return (
@@ -90,6 +127,16 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
                            focus:ring-primary/20"
                 />
                 <span className="ml-2 text-sm text-gray-600">Show Bookmarks Only</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={showReviewsOnly}
+                  onChange={(e) => handleReviewsToggle(e.target.checked)}
+                  className="rounded border-gray-300 text-primary 
+                           focus:ring-primary/20"
+                />
+                <span className="ml-2 text-sm text-gray-600">Show Reviews Only</span>
               </label>
             </div>
           </div>

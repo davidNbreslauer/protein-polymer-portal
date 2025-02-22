@@ -8,6 +8,7 @@ interface FilterOptions {
   proteinFamily?: string[];
   showBookmarksOnly?: boolean;
   sortDirection?: 'asc' | 'desc';
+  showReviewsOnly?: boolean;
 }
 
 const ARTICLES_PER_PAGE = 10;
@@ -54,6 +55,11 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply bookmarks filter if requested
     if (filters.showBookmarksOnly) {
       query = query.in('id', bookmarkedArticleIds);
+    }
+
+    // Apply reviews filter if requested
+    if (filters.showReviewsOnly) {
+      query = query.ilike('publication_type', '%review%');
     }
 
     // Apply text search filter across all relevant fields
