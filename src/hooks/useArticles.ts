@@ -11,9 +11,7 @@ interface FilterOptions {
   showReviewsOnly?: boolean;
 }
 
-const ARTICLES_PER_PAGE = 10;
-
-const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, bookmarkedArticleIds: number[] = []) => {
+const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, pageSize: number = 10, bookmarkedArticleIds: number[] = []) => {
   try {
     // If showing bookmarks only and there are no bookmarks, return empty result
     if (filters.showBookmarksOnly && (!bookmarkedArticleIds || bookmarkedArticleIds.length === 0)) {
@@ -70,8 +68,8 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply sorting (default to descending if not specified)
     query = query.order('pub_date', { ascending: filters.sortDirection === 'asc' });
 
-    // Apply pagination
-    query = query.range(page * ARTICLES_PER_PAGE, (page + 1) * ARTICLES_PER_PAGE - 1);
+    // Apply pagination with dynamic page size
+    query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
     console.log('Fetching articles with query:', query);
 
@@ -110,12 +108,12 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
   }
 };
 
-export const useArticles = (searchQuery: string, filters: FilterOptions = {}, page: number = 0) => {
+export const useArticles = (searchQuery: string, filters: FilterOptions = {}, page: number = 0, pageSize: number = 10) => {
   const { bookmarkedArticleIds } = useBookmarks();
 
   return useQuery({
-    queryKey: ['articles', searchQuery, filters, page, bookmarkedArticleIds],
-    queryFn: () => fetchArticles(searchQuery, filters, page, bookmarkedArticleIds),
+    queryKey: ['articles', searchQuery, filters, page, pageSize, bookmarkedArticleIds],
+    queryFn: () => fetchArticles(searchQuery, filters, page, pageSize, bookmarkedArticleIds),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),

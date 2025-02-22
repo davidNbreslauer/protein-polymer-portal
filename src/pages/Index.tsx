@@ -5,7 +5,10 @@ import { Sidebar } from "@/components/Sidebar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { useArticles } from "@/hooks/useArticles";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,11 +19,12 @@ const Index = () => {
     showReviewsOnly: false
   });
   const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   
-  const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage);
+  const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage, pageSize);
   const articles = data?.articles || [];
   const totalCount = data?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -38,13 +42,19 @@ const Index = () => {
   };
 
   const handleNextPage = () => {
-    if (articles && articles.length === 10) { // If we have a full page, there might be more
+    if (articles && articles.length === pageSize) { // If we have a full page, there might be more
       setCurrentPage(prev => prev + 1);
     }
   };
 
   const handlePrevPage = () => {
     setCurrentPage(prev => Math.max(0, prev - 1));
+  };
+
+  const handlePageSizeChange = (value: string) => {
+    const newSize = parseInt(value, 10);
+    setPageSize(newSize);
+    setCurrentPage(0); // Reset to first page when changing page size
   };
 
   return (
@@ -71,15 +81,30 @@ const Index = () => {
               </div>
             )}
 
-            {!isLoading && !error && (
-              <div className="text-sm text-gray-500 mb-4">
-                {articles.length === 0 ? (
-                  "No articles found matching your criteria."
-                ) : (
-                  `Showing ${articles.length} article${articles.length === 1 ? '' : 's'} of ${totalCount} total result${totalCount === 1 ? '' : 's'}`
-                )}
-              </div>
-            )}
+            <div className="flex justify-between items-center">
+              {!isLoading && !error && (
+                <div className="text-sm text-gray-500">
+                  {articles.length === 0 ? (
+                    "No articles found matching your criteria."
+                  ) : (
+                    `Showing ${articles.length} article${articles.length === 1 ? '' : 's'} of ${totalCount} total result${totalCount === 1 ? '' : 's'}`
+                  )}
+                </div>
+              )}
+
+              <Select onValueChange={handlePageSizeChange} value={pageSize.toString()}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select page size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size} results per page
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {articles?.map((article) => (
               <ArticleCard key={article.id} article={article} />
@@ -104,7 +129,7 @@ const Index = () => {
                 <Button 
                   variant="outline"
                   onClick={handleNextPage}
-                  disabled={articles.length < 10 || (currentPage + 1) * 10 >= totalCount}
+                  disabled={articles.length < pageSize || (currentPage + 1) * pageSize >= totalCount}
                   className="flex items-center gap-2"
                 >
                   Next
