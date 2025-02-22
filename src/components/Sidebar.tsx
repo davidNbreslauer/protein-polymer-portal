@@ -10,7 +10,8 @@ interface SidebarProps {
     proteinFamily: string[], 
     showBookmarksOnly?: boolean, 
     sortDirection?: 'asc' | 'desc',
-    showReviewsOnly?: boolean 
+    showReviewsOnly?: boolean,
+    excludeReviews?: boolean
   }) => void;
 }
 
@@ -19,6 +20,7 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [showReviewsOnly, setShowReviewsOnly] = useState(false);
+  const [excludeReviews, setExcludeReviews] = useState(false);
 
   const handleProteinFamilyChange = (family: string) => {
     const updatedFamilies = selectedProteinFamilies.includes(family)
@@ -30,7 +32,8 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
       proteinFamily: updatedFamilies, 
       showBookmarksOnly, 
       sortDirection,
-      showReviewsOnly 
+      showReviewsOnly,
+      excludeReviews
     });
   };
 
@@ -40,7 +43,8 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
       proteinFamily: selectedProteinFamilies, 
       showBookmarksOnly: checked, 
       sortDirection,
-      showReviewsOnly 
+      showReviewsOnly,
+      excludeReviews
     });
   };
 
@@ -50,17 +54,32 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
       proteinFamily: selectedProteinFamilies, 
       showBookmarksOnly, 
       sortDirection: value,
-      showReviewsOnly 
+      showReviewsOnly,
+      excludeReviews
     });
   };
 
   const handleReviewsToggle = (checked: boolean) => {
     setShowReviewsOnly(checked);
+    if (checked) setExcludeReviews(false); // Disable exclude reviews when showing reviews only
     onFilterChange({ 
       proteinFamily: selectedProteinFamilies, 
       showBookmarksOnly, 
       sortDirection,
-      showReviewsOnly: checked 
+      showReviewsOnly: checked,
+      excludeReviews: false
+    });
+  };
+
+  const handleExcludeReviewsToggle = (checked: boolean) => {
+    setExcludeReviews(checked);
+    if (checked) setShowReviewsOnly(false); // Disable show reviews only when excluding reviews
+    onFilterChange({ 
+      proteinFamily: selectedProteinFamilies, 
+      showBookmarksOnly, 
+      sortDirection,
+      showReviewsOnly: false,
+      excludeReviews: checked
     });
   };
 
@@ -69,11 +88,13 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
     setShowBookmarksOnly(false);
     setSortDirection('desc');
     setShowReviewsOnly(false);
+    setExcludeReviews(false);
     onFilterChange({ 
       proteinFamily: [], 
       showBookmarksOnly: false, 
       sortDirection: 'desc',
-      showReviewsOnly: false 
+      showReviewsOnly: false,
+      excludeReviews: false
     });
   };
 
@@ -123,8 +144,7 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
                   type="checkbox"
                   checked={showBookmarksOnly}
                   onChange={(e) => handleBookmarksToggle(e.target.checked)}
-                  className="rounded border-gray-300 text-primary 
-                           focus:ring-primary/20"
+                  className="rounded border-gray-300 text-primary focus:ring-primary/20"
                 />
                 <span className="ml-2 text-sm text-gray-600">Show Bookmarks Only</span>
               </label>
@@ -133,10 +153,20 @@ export const Sidebar = ({ onFilterChange }: SidebarProps) => {
                   type="checkbox"
                   checked={showReviewsOnly}
                   onChange={(e) => handleReviewsToggle(e.target.checked)}
-                  className="rounded border-gray-300 text-primary 
-                           focus:ring-primary/20"
+                  className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                  disabled={excludeReviews}
                 />
                 <span className="ml-2 text-sm text-gray-600">Show Reviews Only</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={excludeReviews}
+                  onChange={(e) => handleExcludeReviewsToggle(e.target.checked)}
+                  className="rounded border-gray-300 text-primary focus:ring-primary/20"
+                  disabled={showReviewsOnly}
+                />
+                <span className="ml-2 text-sm text-gray-600">Exclude Reviews</span>
               </label>
             </div>
           </div>

@@ -9,6 +9,7 @@ interface FilterOptions {
   showBookmarksOnly?: boolean;
   sortDirection?: 'asc' | 'desc';
   showReviewsOnly?: boolean;
+  excludeReviews?: boolean;
 }
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, pageSize: number = 10, bookmarkedArticleIds: number[] = []) => {
@@ -58,6 +59,8 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply reviews filter if requested
     if (filters.showReviewsOnly) {
       query = query.ilike('publication_type', '%review%');
+    } else if (filters.excludeReviews) {
+      query = query.not('publication_type', 'ilike', '%review%');
     }
 
     // Apply text search filter across all relevant fields
@@ -119,3 +122,4 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}, pa
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),
   });
 };
+

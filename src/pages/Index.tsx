@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
@@ -16,7 +15,8 @@ const Index = () => {
     proteinFamily: [] as string[], 
     showBookmarksOnly: false,
     sortDirection: 'desc' as 'asc' | 'desc',
-    showReviewsOnly: false
+    showReviewsOnly: false,
+    excludeReviews: false
   });
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -35,7 +35,8 @@ const Index = () => {
     proteinFamily: string[], 
     showBookmarksOnly?: boolean,
     sortDirection?: 'asc' | 'desc',
-    showReviewsOnly?: boolean
+    showReviewsOnly?: boolean,
+    excludeReviews?: boolean
   }) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(0); // Reset to first page on filter change
@@ -64,7 +65,7 @@ const Index = () => {
       <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
         <div className="flex gap-6">
           <div className="pt-4">
-            <Sidebar onFilterChange={handleFilterChange} />
+            <Sidebar onFilterChange={setFilters} />
           </div>
 
           <div className="flex-1 space-y-4 pt-4">
