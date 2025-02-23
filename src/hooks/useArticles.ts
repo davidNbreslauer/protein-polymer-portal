@@ -22,19 +22,29 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     let totalCount = 0;
     
+    // First, if we have protein type filters, get the matching article IDs
+    let filteredArticleIds: number[] = [];
+    if (filters.proteinType?.length) {
+      const { data: proteinData } = await supabase
+        .from('proteins')
+        .select('article_id')
+        .in('type', filters.proteinType);
+      
+      filteredArticleIds = (proteinData || []).map(item => item.article_id);
+      
+      // If no articles match the protein type filter, return empty result
+      if (filteredArticleIds.length === 0) {
+        return { articles: [], totalCount: 0 };
+      }
+    }
+    
     // Handle count based on filter conditions
     let countQuery = supabase.from('articles')
       .select('*', { count: 'exact', head: true });
 
     // Apply protein type filter to count query if specified
-    if (filters.proteinType?.length) {
-      countQuery = countQuery
-        .in('id', 
-          supabase
-            .from('proteins')
-            .select('article_id')
-            .in('type', filters.proteinType)
-        );
+    if (filteredArticleIds.length > 0) {
+      countQuery = countQuery.in('id', filteredArticleIds);
     }
 
     if (filters.showBookmarksOnly) {
@@ -63,14 +73,8 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       `);
 
     // Apply protein type filter if specified
-    if (filters.proteinType?.length) {
-      query = query
-        .in('id', 
-          supabase
-            .from('proteins')
-            .select('article_id')
-            .in('type', filters.proteinType)
-        );
+    if (filteredArticleIds.length > 0) {
+      query = query.in('id', filteredArticleIds);
     }
 
     // Apply bookmarks filter if requested
