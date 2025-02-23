@@ -23,24 +23,34 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     let totalCount = 0;
     
     // Handle count based on filter conditions
-    if (filters.showBookmarksOnly) {
-      const { count, error: countError } = await supabase
-        .from('articles')
-        .select('*', { count: 'exact', head: true })
-        .in('id', bookmarkedArticleIds)
-        .or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
-      
-      if (countError) throw countError;
-      totalCount = count || 0;
-    } else {
-      const { data: countData, error: countError } = await supabase
-        .rpc('count_filtered_articles', { search_query: searchQuery });
-      
-      if (countError) throw countError;
-      totalCount = countData || 0;
+    let countQuery = supabase.from('articles')
+      .select('*', { count: 'exact', head: true });
+
+    // Apply protein type filter to count query if specified
+    if (filters.proteinType?.length) {
+      countQuery = countQuery
+        .in('id', 
+          supabase
+            .from('proteins')
+            .select('article_id')
+            .in('type', filters.proteinType)
+        );
     }
 
-    // Build the query with proper foreign table syntax
+    if (filters.showBookmarksOnly) {
+      countQuery = countQuery.in('id', bookmarkedArticleIds);
+    }
+
+    if (searchQuery) {
+      countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
+    }
+
+    const { count, error: countError } = await countQuery;
+    
+    if (countError) throw countError;
+    totalCount = count || 0;
+
+    // Build the main query with proper foreign table syntax
     let query = supabase
       .from('articles')
       .select(`
@@ -51,6 +61,17 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         analysis_techniques(*),
         results(*)
       `);
+
+    // Apply protein type filter if specified
+    if (filters.proteinType?.length) {
+      query = query
+        .in('id', 
+          supabase
+            .from('proteins')
+            .select('article_id')
+            .in('type', filters.proteinType)
+        );
+    }
 
     // Apply bookmarks filter if requested
     if (filters.showBookmarksOnly) {
@@ -92,22 +113,13 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     console.log('Fetched articles:', articles);
 
-    // Filter by protein family and type if specified
+    // Filter by protein family if specified
     let filteredArticles = articles;
     
     if (filters.proteinFamily?.length) {
       filteredArticles = filteredArticles.filter(article => 
         article.facets_protein_family?.some(family => 
           filters.proteinFamily?.includes(family)
-        )
-      );
-    }
-
-    // Add protein type filtering
-    if (filters.proteinType?.length) {
-      filteredArticles = filteredArticles.filter(article =>
-        article.proteins?.some(protein =>
-          protein.type && filters.proteinType?.includes(protein.type)
         )
       );
     }
@@ -133,4 +145,3 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}, pa
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),
   });
 };
-
