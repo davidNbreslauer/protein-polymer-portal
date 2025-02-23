@@ -45,7 +45,9 @@ const Stats = () => {
     articlesWithoutCategories: { id: number; title: string; pubmed_id?: string }[]
   ) => {
     const chartData = data.filter(item => item.count > 1);
-    const singleCountItems = data.filter(item => item.count === 1);
+    const singleCountItems = data
+      .filter(item => item.count === 1)
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
     const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
 
     return (
