@@ -45,11 +45,11 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       .from('articles')
       .select(`
         *,
-        proteins!inner (
-          id,
-          name,
-          type
-        )
+        proteins(*),
+        materials(*),
+        methods(*),
+        analysis_techniques(*),
+        results(*)
       `);
 
     // Apply bookmarks filter if requested
@@ -64,11 +64,6 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.not('publication_type', 'ilike', '%review%');
     }
 
-    // Filter by protein type if specified
-    if (filters.proteinType?.length) {
-      query = query.filter('proteins.type', 'in', `(${filters.proteinType.join(',')})`);
-    }
-
     // Apply text search filter across all relevant fields
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
@@ -80,7 +75,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply pagination with dynamic page size
     query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
-    console.log('Fetching articles with protein types:', filters.proteinType);
+    console.log('Fetching articles with query:', query);
 
     // Execute the query
     const { data: articles, error } = await query;
@@ -95,15 +90,24 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       return { articles: [], totalCount: 0 };
     }
 
-    console.log('Fetched articles count:', articles.length);
+    console.log('Fetched articles:', articles);
 
-    // Filter by protein family if specified
+    // Filter by protein family and type if specified
     let filteredArticles = articles;
     
     if (filters.proteinFamily?.length) {
       filteredArticles = filteredArticles.filter(article => 
         article.facets_protein_family?.some(family => 
           filters.proteinFamily?.includes(family)
+        )
+      );
+    }
+
+    // Add protein type filtering
+    if (filters.proteinType?.length) {
+      filteredArticles = filteredArticles.filter(article =>
+        article.proteins?.some(protein =>
+          protein.type && filters.proteinType?.includes(protein.type)
         )
       );
     }
@@ -129,3 +133,4 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}, pa
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),
   });
 };
+
