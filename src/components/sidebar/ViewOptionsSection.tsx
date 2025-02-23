@@ -1,5 +1,5 @@
 
-import { FilterProps } from "./types";
+import { FilterOptions, FilterProps } from "./types";
 
 interface ViewOptionsSectionProps extends FilterProps {
   showBookmarksOnly: boolean;
@@ -8,7 +8,7 @@ interface ViewOptionsSectionProps extends FilterProps {
   setShowReviewsOnly: (show: boolean) => void;
   excludeReviews: boolean;
   setExcludeReviews: (exclude: boolean) => void;
-  currentFilters: FilterProps['onFilterChange'] extends (filters: infer T) ? T : never;
+  currentFilters: FilterOptions;
 }
 
 export const ViewOptionsSection = ({
@@ -83,4 +83,3 @@ export const ViewOptionsSection = ({
     </div>
   );
 };
-

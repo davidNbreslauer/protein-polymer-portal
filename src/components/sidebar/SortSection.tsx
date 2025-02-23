@@ -1,12 +1,12 @@
 
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
-import { FilterProps } from "./types";
+import { FilterOptions, FilterProps } from "./types";
 
 interface SortSectionProps extends FilterProps {
   sortDirection: 'asc' | 'desc';
   setSortDirection: (direction: 'asc' | 'desc') => void;
-  currentFilters: FilterProps['onFilterChange'] extends (filters: infer T) ? T : never;
+  currentFilters: FilterOptions;
 }
 
 export const SortSection = ({ sortDirection, setSortDirection, onFilterChange, currentFilters }: SortSectionProps) => {
@@ -36,4 +36,3 @@ export const SortSection = ({ sortDirection, setSortDirection, onFilterChange, c
     </div>
   );
 };
-

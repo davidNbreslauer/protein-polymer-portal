@@ -1,10 +1,10 @@
 
-import { FilterProps } from "./types";
+import { FilterOptions, FilterProps } from "./types";
 
 interface ProteinFamilySectionProps extends FilterProps {
   selectedProteinFamilies: string[];
   setSelectedProteinFamilies: (families: string[]) => void;
-  currentFilters: FilterProps['onFilterChange'] extends (filters: infer T) ? T : never;
+  currentFilters: FilterOptions;
 }
 
 export const ProteinFamilySection = ({
@@ -41,4 +41,3 @@ export const ProteinFamilySection = ({
     </div>
   );
 };
-
