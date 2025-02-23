@@ -1,6 +1,7 @@
 
 export interface FilterOptions {
   proteinFamily: string[];
+  proteinType?: string[];
   showBookmarksOnly?: boolean;
   sortDirection?: 'asc' | 'desc';
   showReviewsOnly?: boolean;
@@ -10,4 +11,3 @@ export interface FilterOptions {
 export interface FilterProps {
   onFilterChange: (filters: FilterOptions) => void;
 }
-

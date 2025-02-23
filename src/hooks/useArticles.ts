@@ -6,6 +6,7 @@ import { useBookmarks } from "./useBookmarks";
 
 interface FilterOptions {
   proteinFamily?: string[];
+  proteinType?: string[];
   showBookmarksOnly?: boolean;
   sortDirection?: 'asc' | 'desc';
   showReviewsOnly?: boolean;
@@ -91,12 +92,22 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
 
     console.log('Fetched articles:', articles);
 
-    // Filter by protein family if specified
+    // Filter by protein family and type if specified
     let filteredArticles = articles;
+    
     if (filters.proteinFamily?.length) {
       filteredArticles = filteredArticles.filter(article => 
         article.facets_protein_family?.some(family => 
           filters.proteinFamily?.includes(family)
+        )
+      );
+    }
+
+    // Add protein type filtering
+    if (filters.proteinType?.length) {
+      filteredArticles = filteredArticles.filter(article =>
+        article.proteins?.some(protein =>
+          protein.type && filters.proteinType?.includes(protein.type)
         )
       );
     }

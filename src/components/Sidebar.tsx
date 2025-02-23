@@ -12,6 +12,7 @@ import { FilterOptions, FilterProps } from "./sidebar/types";
 
 export const Sidebar = ({ onFilterChange }: FilterProps) => {
   const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
+  const [selectedProteinTypes, setSelectedProteinTypes] = useState<string[]>([]);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [showReviewsOnly, setShowReviewsOnly] = useState(false);
@@ -19,6 +20,7 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
 
   const currentFilters: FilterOptions = {
     proteinFamily: selectedProteinFamilies,
+    proteinType: selectedProteinTypes,
     showBookmarksOnly,
     sortDirection,
     showReviewsOnly,
@@ -27,12 +29,14 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
 
   const handleClearAll = () => {
     setSelectedProteinFamilies([]);
+    setSelectedProteinTypes([]);
     setShowBookmarksOnly(false);
     setSortDirection('desc');
     setShowReviewsOnly(false);
     setExcludeReviews(false);
     onFilterChange({
       proteinFamily: [],
+      proteinType: [],
       showBookmarksOnly: false,
       sortDirection: 'desc',
       showReviewsOnly: false,
@@ -86,7 +90,12 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
             currentFilters={currentFilters}
           />
 
-          <ProteinTypeSection />
+          <ProteinTypeSection
+            selectedProteinTypes={selectedProteinTypes}
+            setSelectedProteinTypes={setSelectedProteinTypes}
+            onFilterChange={onFilterChange}
+            currentFilters={currentFilters}
+          />
 
           <ApplicationSection />
 
@@ -96,4 +105,3 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
     </aside>
   );
 };
-

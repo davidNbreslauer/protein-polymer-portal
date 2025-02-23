@@ -1,8 +1,20 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FilterOptions, FilterProps } from "./types";
 
-export const ProteinTypeSection = () => {
+interface ProteinTypeSectionProps extends FilterProps {
+  selectedProteinTypes: string[];
+  setSelectedProteinTypes: (types: string[]) => void;
+  currentFilters: FilterOptions;
+}
+
+export const ProteinTypeSection = ({
+  selectedProteinTypes,
+  setSelectedProteinTypes,
+  onFilterChange,
+  currentFilters
+}: ProteinTypeSectionProps) => {
   const [proteinTypes, setProteinTypes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -31,6 +43,15 @@ export const ProteinTypeSection = () => {
     fetchProteinTypes();
   }, []);
 
+  const handleProteinTypeChange = (type: string) => {
+    const updatedTypes = selectedProteinTypes.includes(type)
+      ? selectedProteinTypes.filter(t => t !== type)
+      : [...selectedProteinTypes, type];
+    
+    setSelectedProteinTypes(updatedTypes);
+    onFilterChange({ ...currentFilters, proteinType: updatedTypes });
+  };
+
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium">Protein Type</h3>
@@ -39,6 +60,8 @@ export const ProteinTypeSection = () => {
           <label key={type} className="flex items-center">
             <input
               type="checkbox"
+              checked={selectedProteinTypes.includes(type)}
+              onChange={() => handleProteinTypeChange(type)}
               className="rounded border-gray-300 text-primary focus:ring-primary/20"
             />
             <span className="ml-2 text-sm text-gray-600">{type}</span>
@@ -48,4 +71,3 @@ export const ProteinTypeSection = () => {
     </div>
   );
 };
-
