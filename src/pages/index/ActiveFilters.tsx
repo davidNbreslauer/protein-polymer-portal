@@ -23,9 +23,9 @@ export const ActiveFilters = ({
   // Format active filters for display
   const activeFilters: ActiveFilter[] = [
     ...proteinCategories.map(cat => {
-      // Find the index if it starts with a number
-      const categoryIndex = cat.indexOf('. ');
-      const displayName = categoryIndex !== -1 ? cat : cat;
+      // Find the index if it starts with a number followed by dot and space
+      const categoryMatch = cat.match(/^\d+\.\s(.*)/);
+      const displayName = categoryMatch ? categoryMatch[1] : cat;
       return { type: 'category' as const, value: cat, display: displayName };
     }),
     ...proteinSubcategories.map(sub => ({ type: 'subcategory' as const, value: sub, display: sub }))

@@ -59,7 +59,7 @@ export const ProteinCategorySection = ({
 
         // For each category, get subcategories and counts
         const categoriesWithData = await Promise.all(
-          (categoriesResult || []).map(async ({ category }) => {
+          (categoriesResult || []).map(async ({ category }, index) => {
             // Get subcategories for this category
             const { data: subcategoriesData, error: subcategoriesError } = await supabase
               .from('protein_classifications')
@@ -95,7 +95,7 @@ export const ProteinCategorySection = ({
             );
             
             return {
-              category,
+              category: `${index + 1}. ${category}`,
               subcategories: subcategoriesWithCounts,
               count: categoryCount || 0
             };
@@ -193,7 +193,7 @@ export const ProteinCategorySection = ({
     <div className="space-y-3">
       <h3 className="text-sm font-medium">Protein Categories</h3>
       <div className="space-y-2">
-        {categoriesData.map((categoryData, index) => (
+        {categoriesData.map((categoryData) => (
           <Collapsible 
             key={categoryData.category} 
             open={expandedCategories.includes(categoryData.category)}
@@ -218,7 +218,7 @@ export const ProteinCategorySection = ({
                     className="rounded border-gray-300 text-primary focus:ring-primary/20"
                   />
                   <span className="ml-2 text-sm text-gray-700">
-                    {index + 1}. {categoryData.category}
+                    {categoryData.category}
                   </span>
                 </label>
               </div>
