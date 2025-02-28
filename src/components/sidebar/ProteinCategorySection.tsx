@@ -42,24 +42,18 @@ export const ProteinCategorySection = ({
         const { data: categoriesResult, error: categoriesError } = await supabase
           .from('protein_classifications')
           .select('category')
-          .order('category')
-          .then(result => {
-            if (result.error) throw result.error;
-            // Get unique categories
-            const uniqueCategories = Array.from(
-              new Set(result.data.map(item => item.category))
-            );
-            return { 
-              data: uniqueCategories.map(category => ({ category })), 
-              error: null 
-            };
-          });
-
+          .order('category');
+        
         if (categoriesError) throw categoriesError;
-
-        // For each category, get subcategories and counts
+        
+        // Get unique categories
+        const uniqueCategories = Array.from(
+          new Set(categoriesResult.map(item => item.category))
+        );
+        
+        // For each unique category, get subcategories and counts
         const categoriesWithData = await Promise.all(
-          (categoriesResult || []).map(async ({ category }, index) => {
+          uniqueCategories.map(async (category, index) => {
             // Get subcategories for this category
             const { data: subcategoriesData, error: subcategoriesError } = await supabase
               .from('protein_classifications')
