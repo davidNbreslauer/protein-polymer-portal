@@ -48,8 +48,10 @@ export type Database = {
           elocation_id: string | null
           facets_application: string[] | null
           facets_expression_system: string[] | null
+          facets_protein_categories: string[] | null
           facets_protein_family: string[] | null
           facets_protein_form: string[] | null
+          facets_protein_subcategories: string[] | null
           facets_structural_motifs: string[] | null
           facets_tested_properties: string[] | null
           id: number
@@ -75,8 +77,10 @@ export type Database = {
           elocation_id?: string | null
           facets_application?: string[] | null
           facets_expression_system?: string[] | null
+          facets_protein_categories?: string[] | null
           facets_protein_family?: string[] | null
           facets_protein_form?: string[] | null
+          facets_protein_subcategories?: string[] | null
           facets_structural_motifs?: string[] | null
           facets_tested_properties?: string[] | null
           id?: number
@@ -102,8 +106,10 @@ export type Database = {
           elocation_id?: string | null
           facets_application?: string[] | null
           facets_expression_system?: string[] | null
+          facets_protein_categories?: string[] | null
           facets_protein_family?: string[] | null
           facets_protein_form?: string[] | null
+          facets_protein_subcategories?: string[] | null
           facets_structural_motifs?: string[] | null
           facets_tested_properties?: string[] | null
           id?: number
@@ -227,10 +233,38 @@ export type Database = {
           },
         ]
       }
+      protein_classifications: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: number
+          subcategory: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          subcategory: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          subcategory?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       proteins: {
         Row: {
           applications: string[] | null
           article_id: number
+          classification_id: number | null
           created_at: string | null
           derived_from: string | null
           description: string | null
@@ -249,6 +283,7 @@ export type Database = {
         Insert: {
           applications?: string[] | null
           article_id: number
+          classification_id?: number | null
           created_at?: string | null
           derived_from?: string | null
           description?: string | null
@@ -267,6 +302,7 @@ export type Database = {
         Update: {
           applications?: string[] | null
           article_id?: number
+          classification_id?: number | null
           created_at?: string | null
           derived_from?: string | null
           description?: string | null
@@ -288,6 +324,13 @@ export type Database = {
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proteins_classification_id_fkey"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "protein_classifications"
             referencedColumns: ["id"]
           },
         ]
@@ -326,7 +369,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      protein_classification_view: {
+        Row: {
+          applications: string[] | null
+          article_id: number | null
+          category: string | null
+          derived_from: string | null
+          description: string | null
+          expression_system: string | null
+          key_properties: string[] | null
+          production_method: string | null
+          protein_family: string | null
+          protein_form: string | null
+          protein_id: number | null
+          protein_name: string | null
+          role_in_study: string | null
+          structural_motifs: string[] | null
+          subcategory: string | null
+          type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proteins_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       count_filtered_articles: {
@@ -334,6 +405,12 @@ export type Database = {
           search_query: string
         }
         Returns: number
+      }
+      exec_sql: {
+        Args: {
+          sql: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

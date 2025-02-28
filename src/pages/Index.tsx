@@ -6,7 +6,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { useArticles } from "@/hooks/useArticles";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -14,6 +14,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ 
     proteinFamily: [] as string[], 
+    proteinCategory: [] as string[],
+    proteinSubcategory: [] as string[],
     showBookmarksOnly: false,
     sortDirection: 'desc' as 'asc' | 'desc',
     showReviewsOnly: false,
@@ -34,6 +36,9 @@ const Index = () => {
 
   const handleFilterChange = (newFilters: { 
     proteinFamily: string[], 
+    proteinType?: string[],
+    proteinCategory?: string[],
+    proteinSubcategory?: string[],
     showBookmarksOnly?: boolean,
     sortDirection?: 'asc' | 'desc',
     showReviewsOnly?: boolean,
@@ -42,12 +47,39 @@ const Index = () => {
     setFilters(prev => ({
       ...prev,
       proteinFamily: newFilters.proteinFamily,
+      proteinType: newFilters.proteinType ?? prev.proteinType,
+      proteinCategory: newFilters.proteinCategory ?? prev.proteinCategory,
+      proteinSubcategory: newFilters.proteinSubcategory ?? prev.proteinSubcategory,
       showBookmarksOnly: newFilters.showBookmarksOnly ?? prev.showBookmarksOnly,
       sortDirection: newFilters.sortDirection ?? prev.sortDirection,
       showReviewsOnly: newFilters.showReviewsOnly ?? prev.showReviewsOnly,
       excludeReviews: newFilters.excludeReviews ?? prev.excludeReviews
     }));
     setCurrentPage(0); // Reset to first page on filter change
+  };
+
+  const handleClearFilter = (type: 'category' | 'subcategory', value: string) => {
+    if (type === 'category') {
+      // When clearing a category, also clear its subcategories
+      const categoryToRemove = value;
+      // Find all subcategories that belong to this category to remove them
+      const categoryIndex = value.indexOf('. ');
+      const categoryName = categoryIndex !== -1 ? value.substring(categoryIndex + 2) : value;
+      
+      setFilters(prev => ({
+        ...prev,
+        proteinCategory: prev.proteinCategory.filter(c => !c.includes(categoryName)),
+        // Remove subcategories that start with the category name
+        proteinSubcategory: prev.proteinSubcategory.filter(sc => !sc.startsWith(`${categoryName}: `))
+      }));
+    } else {
+      // Just remove the specific subcategory
+      setFilters(prev => ({
+        ...prev,
+        proteinSubcategory: prev.proteinSubcategory.filter(sc => sc !== value)
+      }));
+    }
+    setCurrentPage(0);
   };
 
   const handleNextPage = () => {
@@ -66,6 +98,53 @@ const Index = () => {
     setCurrentPage(0); // Reset to first page when changing page size
   };
 
+  // Format active filters for display
+  const renderActiveFilters = () => {
+    const activeFilters = [
+      ...filters.proteinCategory.map(cat => {
+        // Find the index if it starts with a number
+        const categoryIndex = cat.indexOf('. ');
+        const displayName = categoryIndex !== -1 ? cat : cat;
+        return { type: 'category' as const, value: cat, display: displayName };
+      }),
+      ...filters.proteinSubcategory.map(sub => ({ type: 'subcategory' as const, value: sub, display: sub }))
+    ];
+
+    if (activeFilters.length === 0) return null;
+
+    return (
+      <div className="mb-4">
+        <h3 className="text-sm font-medium mb-2">Active Filters</h3>
+        <div className="flex flex-wrap gap-2">
+          {activeFilters.map((filter, index) => (
+            <button
+              key={`${filter.type}-${index}`}
+              onClick={() => handleClearFilter(filter.type, filter.value)}
+              className="inline-flex items-center bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-sm"
+            >
+              {filter.display}
+              <X className="ml-1 w-4 h-4" />
+            </button>
+          ))}
+          {activeFilters.length > 0 && (
+            <button 
+              onClick={() => {
+                setFilters(prev => ({
+                  ...prev,
+                  proteinCategory: [],
+                  proteinSubcategory: []
+                }));
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header searchQuery={searchQuery} onSearchChange={handleSearch} />
@@ -77,6 +156,8 @@ const Index = () => {
           </div>
 
           <div className="flex-1 space-y-4 pt-4">
+            {renderActiveFilters()}
+            
             {isLoading && (
               <div className="text-center py-8">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>

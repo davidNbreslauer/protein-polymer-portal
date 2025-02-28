@@ -6,6 +6,7 @@ import { ViewOptionsSection } from "./sidebar/ViewOptionsSection";
 import { DateRangeSection } from "./sidebar/DateRangeSection";
 import { ProteinFamilySection } from "./sidebar/ProteinFamilySection";
 import { ProteinTypeSection } from "./sidebar/ProteinTypeSection";
+import { ProteinCategorySection } from "./sidebar/ProteinCategorySection";
 import { ApplicationSection } from "./sidebar/ApplicationSection";
 import { TestedPropertiesSection } from "./sidebar/TestedPropertiesSection";
 import { FilterOptions, FilterProps } from "./sidebar/types";
@@ -13,6 +14,8 @@ import { FilterOptions, FilterProps } from "./sidebar/types";
 export const Sidebar = ({ onFilterChange }: FilterProps) => {
   const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
   const [selectedProteinTypes, setSelectedProteinTypes] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [showReviewsOnly, setShowReviewsOnly] = useState(false);
@@ -21,6 +24,8 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
   const currentFilters: FilterOptions = {
     proteinFamily: selectedProteinFamilies,
     proteinType: selectedProteinTypes,
+    proteinCategory: selectedCategories,
+    proteinSubcategory: selectedSubcategories,
     showBookmarksOnly,
     sortDirection,
     showReviewsOnly,
@@ -30,6 +35,8 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
   const handleClearAll = () => {
     setSelectedProteinFamilies([]);
     setSelectedProteinTypes([]);
+    setSelectedCategories([]);
+    setSelectedSubcategories([]);
     setShowBookmarksOnly(false);
     setSortDirection('desc');
     setShowReviewsOnly(false);
@@ -37,6 +44,8 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
     onFilterChange({
       proteinFamily: [],
       proteinType: [],
+      proteinCategory: [],
+      proteinSubcategory: [],
       showBookmarksOnly: false,
       sortDirection: 'desc',
       showReviewsOnly: false,
@@ -82,6 +91,15 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
           />
 
           <DateRangeSection />
+
+          <ProteinCategorySection
+            selectedCategories={selectedCategories}
+            setSelectedCategories={setSelectedCategories}
+            selectedSubcategories={selectedSubcategories}
+            setSelectedSubcategories={setSelectedSubcategories}
+            onFilterChange={onFilterChange}
+            currentFilters={currentFilters}
+          />
 
           <ProteinFamilySection
             selectedProteinFamilies={selectedProteinFamilies}

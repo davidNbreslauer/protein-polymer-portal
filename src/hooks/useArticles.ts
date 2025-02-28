@@ -7,6 +7,8 @@ import { useBookmarks } from "./useBookmarks";
 interface FilterOptions {
   proteinFamily?: string[];
   proteinType?: string[];
+  proteinCategory?: string[];
+  proteinSubcategory?: string[];
   showBookmarksOnly?: boolean;
   sortDirection?: 'asc' | 'desc';
   showReviewsOnly?: boolean;
@@ -47,6 +49,15 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       countQuery = countQuery.in('id', filteredArticleIds);
     }
 
+    // Apply protein category and subcategory filters
+    if (filters.proteinCategory?.length) {
+      countQuery = countQuery.overlaps('facets_protein_categories', filters.proteinCategory);
+    }
+
+    if (filters.proteinSubcategory?.length) {
+      countQuery = countQuery.overlaps('facets_protein_subcategories', filters.proteinSubcategory);
+    }
+
     if (filters.showBookmarksOnly) {
       countQuery = countQuery.in('id', bookmarkedArticleIds);
     }
@@ -75,6 +86,15 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply protein type filter if specified
     if (filteredArticleIds.length > 0) {
       query = query.in('id', filteredArticleIds);
+    }
+
+    // Apply protein category and subcategory filters
+    if (filters.proteinCategory?.length) {
+      query = query.overlaps('facets_protein_categories', filters.proteinCategory);
+    }
+
+    if (filters.proteinSubcategory?.length) {
+      query = query.overlaps('facets_protein_subcategories', filters.proteinSubcategory);
     }
 
     // Apply bookmarks filter if requested
