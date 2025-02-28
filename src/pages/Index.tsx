@@ -14,6 +14,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({ 
     proteinFamily: [] as string[], 
+    proteinType: [] as string[],
     proteinCategory: [] as string[],
     proteinSubcategory: [] as string[],
     showBookmarksOnly: false,
