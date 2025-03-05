@@ -69,7 +69,7 @@ const Index = () => {
             error={error}
             currentPage={currentPage}
             pageSize={pageSize}
-            onNextPage={() => handleNextPage(articles.length)}
+            onNextPage={handleNextPage}
             onPrevPage={handlePrevPage}
             onPageSizeChange={handlePageSizeChange}
           />

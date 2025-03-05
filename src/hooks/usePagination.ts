@@ -5,10 +5,8 @@ export function usePagination() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
-  const handleNextPage = (itemsCount: number) => {
-    if (itemsCount === pageSize) { // If we have a full page, there might be more
-      setCurrentPage(prev => prev + 1);
-    }
+  const handleNextPage = () => {
+    setCurrentPage(prev => prev + 1);
   };
 
   const handlePrevPage = () => {

@@ -31,8 +31,8 @@ export const SearchResults = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <ResultsInfo 
-          articlesCount={articles.length}
-          totalCount={totalCount}
+          articlesCount={articles?.length || 0}
+          totalCount={totalCount || 0}
           isLoading={isLoading}
           hasError={!!error}
         />
@@ -43,12 +43,12 @@ export const SearchResults = ({
       </div>
 
       <ArticlesList
-        articles={articles}
+        articles={articles || []}
         isLoading={isLoading}
         error={error}
         currentPage={currentPage}
         pageSize={pageSize}
-        totalCount={totalCount}
+        totalCount={totalCount || 0}
         onNextPage={onNextPage}
         onPrevPage={onPrevPage}
       />
