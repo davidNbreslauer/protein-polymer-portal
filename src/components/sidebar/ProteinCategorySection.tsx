@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FilterOptions, FilterProps } from "./types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface CategoryData {
   category: string;
@@ -38,7 +37,6 @@ export const ProteinCategorySection = ({
     const fetchCategoriesData = async () => {
       setIsLoading(true);
       try {
-        // First get all unique categories
         const { data: categoriesResult, error: categoriesError } = await supabase
           .from('protein_classifications')
           .select('category')
@@ -46,15 +44,12 @@ export const ProteinCategorySection = ({
         
         if (categoriesError) throw categoriesError;
         
-        // Get unique categories
         const uniqueCategories = Array.from(
           new Set(categoriesResult.map(item => item.category))
         );
         
-        // For each unique category, get subcategories and counts
         const categoriesWithData = await Promise.all(
           uniqueCategories.map(async (category) => {
-            // Get subcategories for this category
             const { data: subcategoriesData, error: subcategoriesError } = await supabase
               .from('protein_classifications')
               .select('subcategory')
@@ -63,7 +58,6 @@ export const ProteinCategorySection = ({
             
             if (subcategoriesError) throw subcategoriesError;
             
-            // Get count of articles for this category
             const { count: categoryCount, error: categoryCountError } = await supabase
               .from('articles')
               .select('*', { count: 'exact', head: true })
@@ -71,7 +65,6 @@ export const ProteinCategorySection = ({
             
             if (categoryCountError) throw categoryCountError;
             
-            // Get counts for each subcategory
             const subcategoriesWithCounts = await Promise.all(
               (subcategoriesData || []).map(async ({ subcategory }) => {
                 const { count, error } = await supabase
@@ -88,18 +81,16 @@ export const ProteinCategorySection = ({
               })
             );
             
-            // Sort subcategories by count in descending order
             const sortedSubcategories = subcategoriesWithCounts.sort((a, b) => b.count - a.count);
             
             return {
-              category: category, // Removed the index + 1 prefix
+              category: category,
               subcategories: sortedSubcategories,
               count: categoryCount || 0
             };
           })
         );
         
-        // Sort categories by count in descending order
         const sortedCategories = categoriesWithData.sort((a, b) => b.count - a.count);
         
         setCategoriesData(sortedCategories);
@@ -127,15 +118,11 @@ export const ProteinCategorySection = ({
     let newSubcategories: string[];
     
     if (isSelected) {
-      // If deselecting category, remove it and all its subcategories
       newCategories = selectedCategories.filter(c => c !== category);
-      
-      // Remove all subcategories that belong to this category
       const categoryData = categoriesData.find(c => c.category === category);
       const subcategoriesToRemove = categoryData?.subcategories.map(sc => sc.name) || [];
       newSubcategories = selectedSubcategories.filter(sc => !subcategoriesToRemove.includes(sc));
     } else {
-      // If selecting category, add it
       newCategories = [...selectedCategories, category];
       newSubcategories = selectedSubcategories;
     }
@@ -156,10 +143,8 @@ export const ProteinCategorySection = ({
     let newCategories = selectedCategories;
     
     if (isSelected) {
-      // If deselecting subcategory, just remove it
       newSubcategories = selectedSubcategories.filter(sc => sc !== subcategory);
     } else {
-      // If selecting subcategory, add it and ensure its category is also selected
       newSubcategories = [...selectedSubcategories, subcategory];
       if (!newCategories.includes(category)) {
         newCategories = [...newCategories, category];
@@ -236,7 +221,6 @@ export const ProteinCategorySection = ({
                       className="rounded border-gray-300 text-primary focus:ring-primary/20"
                     />
                     <span className="ml-2 text-sm text-gray-600">
-                      <Plus className="h-3 w-3 inline mr-1 text-gray-400" />
                       {subcategory.name}
                     </span>
                   </label>
