@@ -88,15 +88,21 @@ export const ProteinCategorySection = ({
               })
             );
             
+            // Sort subcategories by count in descending order
+            const sortedSubcategories = subcategoriesWithCounts.sort((a, b) => b.count - a.count);
+            
             return {
               category: `${index + 1}. ${category}`,
-              subcategories: subcategoriesWithCounts,
+              subcategories: sortedSubcategories,
               count: categoryCount || 0
             };
           })
         );
         
-        setCategoriesData(categoriesWithData);
+        // Sort categories by count in descending order
+        const sortedCategories = categoriesWithData.sort((a, b) => b.count - a.count);
+        
+        setCategoriesData(sortedCategories);
       } catch (error) {
         console.error('Error fetching protein categories:', error);
       } finally {
