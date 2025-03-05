@@ -47,6 +47,8 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
     setExcludeReviews(false);
     setStartDate(null);
     setEndDate(null);
+    
+    // Explicitly call onFilterChange with the reset values
     onFilterChange({
       proteinFamily: [],
       proteinType: [],

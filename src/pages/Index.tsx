@@ -46,6 +46,8 @@ const Index = () => {
     startDate?: Date | null,
     endDate?: Date | null
   }) => {
+    console.log("Filter change in Index component:", newFilters);
+    
     setFilters(prev => ({
       ...prev,
       proteinFamily: newFilters.proteinFamily,
@@ -56,8 +58,8 @@ const Index = () => {
       sortDirection: newFilters.sortDirection ?? prev.sortDirection,
       showReviewsOnly: newFilters.showReviewsOnly ?? prev.showReviewsOnly,
       excludeReviews: newFilters.excludeReviews ?? prev.excludeReviews,
-      startDate: newFilters.startDate ?? prev.startDate,
-      endDate: newFilters.endDate ?? prev.endDate
+      startDate: newFilters.startDate !== undefined ? newFilters.startDate : prev.startDate,
+      endDate: newFilters.endDate !== undefined ? newFilters.endDate : prev.endDate
     }));
     setCurrentPage(0); // Reset to first page on filter change
   };

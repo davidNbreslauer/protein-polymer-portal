@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Article } from "@/types/article";
@@ -67,6 +68,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
     }
 
+    // Date range filtering for count query
     if (filters.startDate) {
       const startDateStr = filters.startDate.toISOString().split('T')[0];
       countQuery = countQuery.gte('pub_date', startDateStr);
@@ -128,7 +130,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
     }
 
-    // Apply date range filter
+    // Date range filtering for main query
     if (filters.startDate) {
       const startDateStr = filters.startDate.toISOString().split('T')[0];
       query = query.gte('pub_date', startDateStr);
@@ -148,7 +150,7 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply pagination with dynamic page size
     query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
-    console.log('Fetching articles with query:', query);
+    console.log('Fetching articles with filters:', JSON.stringify(filters, null, 2));
 
     // Execute the query
     const { data: articles, error } = await query;
@@ -162,8 +164,6 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       console.log('No articles found');
       return { articles: [], totalCount: 0 };
     }
-
-    console.log('Fetched articles:', articles);
 
     // Filter by protein family if specified
     let filteredArticles = articles;
@@ -193,7 +193,5 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}, pa
     queryKey: ['articles', searchQuery, filters, page, pageSize, bookmarkedArticleIds],
     queryFn: () => fetchArticles(searchQuery, filters, page, pageSize, bookmarkedArticleIds),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 10000),
   });
 };
