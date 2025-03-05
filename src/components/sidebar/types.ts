@@ -8,6 +8,8 @@ export interface FilterOptions {
   sortDirection?: 'asc' | 'desc';
   showReviewsOnly?: boolean;
   excludeReviews?: boolean;
+  startDate?: Date | null;
+  endDate?: Date | null;
 }
 
 export interface FilterProps {

@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Article } from "@/types/article";
@@ -13,6 +12,8 @@ interface FilterOptions {
   sortDirection?: 'asc' | 'desc';
   showReviewsOnly?: boolean;
   excludeReviews?: boolean;
+  startDate?: Date | null;
+  endDate?: Date | null;
 }
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, pageSize: number = 10, bookmarkedArticleIds: number[] = []) => {
@@ -66,6 +67,19 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
     }
 
+    if (filters.startDate) {
+      const startDateStr = filters.startDate.toISOString().split('T')[0];
+      countQuery = countQuery.gte('pub_date', startDateStr);
+    }
+    
+    if (filters.endDate) {
+      // Add one day to include the end date
+      const endDate = new Date(filters.endDate);
+      endDate.setDate(endDate.getDate() + 1);
+      const endDateStr = endDate.toISOString().split('T')[0];
+      countQuery = countQuery.lt('pub_date', endDateStr);
+    }
+
     const { count, error: countError } = await countQuery;
     
     if (countError) throw countError;
@@ -112,6 +126,20 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     // Apply text search filter across all relevant fields
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
+    }
+
+    // Apply date range filter
+    if (filters.startDate) {
+      const startDateStr = filters.startDate.toISOString().split('T')[0];
+      query = query.gte('pub_date', startDateStr);
+    }
+    
+    if (filters.endDate) {
+      // Add one day to include the end date
+      const endDate = new Date(filters.endDate);
+      endDate.setDate(endDate.getDate() + 1);
+      const endDateStr = endDate.toISOString().split('T')[0];
+      query = query.lt('pub_date', endDateStr);
     }
 
     // Apply sorting (default to descending if not specified)

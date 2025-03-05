@@ -20,6 +20,8 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [showReviewsOnly, setShowReviewsOnly] = useState(false);
   const [excludeReviews, setExcludeReviews] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const currentFilters: FilterOptions = {
     proteinFamily: selectedProteinFamilies,
@@ -29,7 +31,9 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
     showBookmarksOnly,
     sortDirection,
     showReviewsOnly,
-    excludeReviews
+    excludeReviews,
+    startDate,
+    endDate
   };
 
   const handleClearAll = () => {
@@ -41,6 +45,8 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
     setSortDirection('desc');
     setShowReviewsOnly(false);
     setExcludeReviews(false);
+    setStartDate(null);
+    setEndDate(null);
     onFilterChange({
       proteinFamily: [],
       proteinType: [],
@@ -49,7 +55,19 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
       showBookmarksOnly: false,
       sortDirection: 'desc',
       showReviewsOnly: false,
-      excludeReviews: false
+      excludeReviews: false,
+      startDate: null,
+      endDate: null
+    });
+  };
+
+  const handleDateChange = (newStartDate: Date | null, newEndDate: Date | null) => {
+    setStartDate(newStartDate);
+    setEndDate(newEndDate);
+    onFilterChange({
+      ...currentFilters,
+      startDate: newStartDate,
+      endDate: newEndDate
     });
   };
 
@@ -90,7 +108,12 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
             currentFilters={currentFilters}
           />
 
-          <DateRangeSection />
+          <DateRangeSection 
+            startDate={startDate}
+            endDate={endDate}
+            onDateChange={handleDateChange}
+            currentFilters={currentFilters}
+          />
 
           <ProteinCategorySection
             selectedCategories={selectedCategories}

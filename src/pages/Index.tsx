@@ -18,7 +18,9 @@ const Index = () => {
     showBookmarksOnly: false,
     sortDirection: 'desc' as 'asc' | 'desc',
     showReviewsOnly: false,
-    excludeReviews: false
+    excludeReviews: false,
+    startDate: null as Date | null,
+    endDate: null as Date | null
   });
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -40,7 +42,9 @@ const Index = () => {
     showBookmarksOnly?: boolean,
     sortDirection?: 'asc' | 'desc',
     showReviewsOnly?: boolean,
-    excludeReviews?: boolean
+    excludeReviews?: boolean,
+    startDate?: Date | null,
+    endDate?: Date | null
   }) => {
     setFilters(prev => ({
       ...prev,
@@ -51,7 +55,9 @@ const Index = () => {
       showBookmarksOnly: newFilters.showBookmarksOnly ?? prev.showBookmarksOnly,
       sortDirection: newFilters.sortDirection ?? prev.sortDirection,
       showReviewsOnly: newFilters.showReviewsOnly ?? prev.showReviewsOnly,
-      excludeReviews: newFilters.excludeReviews ?? prev.excludeReviews
+      excludeReviews: newFilters.excludeReviews ?? prev.excludeReviews,
+      startDate: newFilters.startDate ?? prev.startDate,
+      endDate: newFilters.endDate ?? prev.endDate
     }));
     setCurrentPage(0); // Reset to first page on filter change
   };
