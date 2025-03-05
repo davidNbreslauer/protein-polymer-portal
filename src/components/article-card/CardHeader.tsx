@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
 import { UseMutateFunction } from "@tanstack/react-query";
 import { format, isValid, parse } from "date-fns";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CardHeaderProps {
   article: Article;
@@ -24,6 +27,34 @@ export const CardHeader = ({
   toggleBookmark,
   isLoadingBookmarks,
 }: CardHeaderProps) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleBookmarkClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to bookmark articles");
+      return;
+    }
+    toggleBookmark(article.id);
+  };
+
   let formattedDate = null;
   
   if (article.pub_date) {
@@ -122,7 +153,8 @@ export const CardHeader = ({
           size="icon"
           className="h-8 w-8"
           disabled={isLoadingBookmarks}
-          onClick={() => toggleBookmark(article.id)}
+          onClick={handleBookmarkClick}
+          title={isAuthenticated ? "Bookmark article" : "Sign in to bookmark articles"}
         >
           <Bookmark 
             className={cn(

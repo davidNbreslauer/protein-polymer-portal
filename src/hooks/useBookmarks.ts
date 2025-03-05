@@ -9,9 +9,11 @@ export const useBookmarks = () => {
   const { data: bookmarkedArticleIds = [], isLoading: isLoadingBookmarks } = useQuery({
     queryKey: ['bookmarks'],
     queryFn: async () => {
+      // Check if user is authenticated
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) return [];
 
+      // Fetch bookmarks for the authenticated user
       const { data, error } = await supabase
         .from('bookmarks')
         .select('article_id')
@@ -28,6 +30,7 @@ export const useBookmarks = () => {
 
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: async (articleId: number) => {
+      // Check if user is authenticated
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
         throw new Error('Must be logged in to bookmark articles');
