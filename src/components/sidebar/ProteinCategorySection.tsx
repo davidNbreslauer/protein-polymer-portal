@@ -1,17 +1,8 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { FilterOptions, FilterProps } from "./types";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
-interface CategoryData {
-  category: string;
-  subcategories: {
-    name: string;
-    count: number;
-  }[];
-  count: number;
-}
+import { useState } from "react";
+import { FilterOptions, FilterProps } from "./types";
+import { useProteinCategories } from "@/hooks/useProteinCategories";
+import { ProteinCategory } from "./category/ProteinCategory";
 
 interface ProteinCategorySectionProps extends FilterProps {
   selectedCategories: string[];
@@ -29,80 +20,8 @@ export const ProteinCategorySection = ({
   onFilterChange,
   currentFilters
 }: ProteinCategorySectionProps) => {
-  const [categoriesData, setCategoriesData] = useState<CategoryData[]>([]);
+  const { categoriesData, isLoading } = useProteinCategories();
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCategoriesData = async () => {
-      setIsLoading(true);
-      try {
-        const { data: categoriesResult, error: categoriesError } = await supabase
-          .from('protein_classifications')
-          .select('category')
-          .order('category');
-        
-        if (categoriesError) throw categoriesError;
-        
-        const uniqueCategories = Array.from(
-          new Set(categoriesResult.map(item => item.category))
-        );
-        
-        const categoriesWithData = await Promise.all(
-          uniqueCategories.map(async (category) => {
-            const { data: subcategoriesData, error: subcategoriesError } = await supabase
-              .from('protein_classifications')
-              .select('subcategory')
-              .eq('category', category)
-              .order('subcategory');
-            
-            if (subcategoriesError) throw subcategoriesError;
-            
-            const { count: categoryCount, error: categoryCountError } = await supabase
-              .from('articles')
-              .select('*', { count: 'exact', head: true })
-              .contains('facets_protein_categories', [category]);
-            
-            if (categoryCountError) throw categoryCountError;
-            
-            const subcategoriesWithCounts = await Promise.all(
-              (subcategoriesData || []).map(async ({ subcategory }) => {
-                const { count, error } = await supabase
-                  .from('articles')
-                  .select('*', { count: 'exact', head: true })
-                  .contains('facets_protein_subcategories', [subcategory]);
-                
-                if (error) throw error;
-                
-                return {
-                  name: subcategory,
-                  count: count || 0
-                };
-              })
-            );
-            
-            const sortedSubcategories = subcategoriesWithCounts.sort((a, b) => b.count - a.count);
-            
-            return {
-              category: category,
-              subcategories: sortedSubcategories,
-              count: categoryCount || 0
-            };
-          })
-        );
-        
-        const sortedCategories = categoriesWithData.sort((a, b) => b.count - a.count);
-        
-        setCategoriesData(sortedCategories);
-      } catch (error) {
-        console.error('Error fetching protein categories:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCategoriesData();
-  }, []);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => 
@@ -179,56 +98,16 @@ export const ProteinCategorySection = ({
       <h3 className="text-sm font-medium">Protein Categories</h3>
       <div className="space-y-2">
         {categoriesData.map((categoryData) => (
-          <Collapsible 
-            key={categoryData.category} 
-            open={expandedCategories.includes(categoryData.category)}
-            onOpenChange={() => toggleCategory(categoryData.category)}
-            className="border-b border-gray-100 pb-1"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <CollapsibleTrigger className="flex items-center mr-2">
-                  {expandedCategories.includes(categoryData.category) ? (
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-gray-500" />
-                  )}
-                </CollapsibleTrigger>
-                
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(categoryData.category)}
-                    onChange={() => handleCategorySelect(categoryData.category)}
-                    className="rounded border-gray-300 text-primary focus:ring-primary/20"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    {categoryData.category}
-                  </span>
-                </label>
-              </div>
-              <span className="text-sm text-gray-500">{categoryData.count}</span>
-            </div>
-            
-            <CollapsibleContent className="pl-9 space-y-1 mt-1">
-              {categoryData.subcategories.map((subcategory) => (
-                <div key={subcategory.name} className="flex items-center justify-between">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedSubcategories.includes(subcategory.name)}
-                      onChange={() => handleSubcategorySelect(subcategory.name, categoryData.category)}
-                      className="rounded border-gray-300 text-primary focus:ring-primary/20"
-                    />
-                    <span className="ml-2 text-sm text-gray-600">
-                      {subcategory.name}
-                    </span>
-                  </label>
-                  <span className="text-sm text-gray-500">{subcategory.count}</span>
-                </div>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
+          <ProteinCategory
+            key={categoryData.category}
+            categoryData={categoryData}
+            isExpanded={expandedCategories.includes(categoryData.category)}
+            onToggleExpand={toggleCategory}
+            isSelected={selectedCategories.includes(categoryData.category)}
+            onCategorySelect={handleCategorySelect}
+            selectedSubcategories={selectedSubcategories}
+            onSubcategorySelect={handleSubcategorySelect}
+          />
         ))}
       </div>
     </div>
