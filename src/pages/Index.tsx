@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { useArticles } from "@/hooks/useArticles";
@@ -24,6 +24,9 @@ const Index = () => {
   });
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  
+  // Create a ref to the sidebar to access its clearAll method
+  const sidebarRef = useRef<{ clearAll: () => void } | null>(null);
   
   const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage, pageSize);
   const articles = data?.articles || [];
@@ -117,6 +120,7 @@ const Index = () => {
   };
 
   const handleClearAllFilters = () => {
+    // Reset filters in the Index component state
     setFilters({
       proteinFamily: [],
       proteinType: [],
@@ -129,6 +133,12 @@ const Index = () => {
       startDate: null,
       endDate: null
     });
+    
+    // Also call the sidebar's clearAll function to reset its internal state
+    if (sidebarRef.current) {
+      sidebarRef.current.clearAll();
+    }
+    
     setCurrentPage(0);
   };
 
@@ -155,7 +165,10 @@ const Index = () => {
       <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
         <div className="flex gap-6">
           <div className="pt-4">
-            <Sidebar onFilterChange={handleFilterChange} />
+            <Sidebar 
+              ref={sidebarRef}
+              onFilterChange={handleFilterChange} 
+            />
           </div>
 
           <div className="flex-1 space-y-4 pt-4">

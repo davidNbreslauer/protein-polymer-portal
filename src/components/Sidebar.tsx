@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 import { Filter } from "lucide-react";
 import { SortSection } from "./sidebar/SortSection";
 import { ViewOptionsSection } from "./sidebar/ViewOptionsSection";
@@ -11,7 +11,12 @@ import { ApplicationSection } from "./sidebar/ApplicationSection";
 import { TestedPropertiesSection } from "./sidebar/TestedPropertiesSection";
 import { FilterOptions, FilterProps } from "./sidebar/types";
 
-export const Sidebar = ({ onFilterChange }: FilterProps) => {
+// Define the ref type
+export interface SidebarRef {
+  clearAll: () => void;
+}
+
+export const Sidebar = forwardRef<SidebarRef, FilterProps>(({ onFilterChange }, ref) => {
   const [selectedProteinFamilies, setSelectedProteinFamilies] = useState<string[]>([]);
   const [selectedProteinTypes, setSelectedProteinTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -35,6 +40,11 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
     startDate,
     endDate
   };
+
+  // Expose the clearAll method to parent components via ref
+  useImperativeHandle(ref, () => ({
+    clearAll: handleClearAll
+  }));
 
   const handleClearAll = () => {
     setSelectedProteinFamilies([]);
@@ -147,4 +157,7 @@ export const Sidebar = ({ onFilterChange }: FilterProps) => {
       </div>
     </aside>
   );
-};
+});
+
+// Display name for debugging purposes
+Sidebar.displayName = "Sidebar";
