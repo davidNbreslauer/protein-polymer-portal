@@ -53,7 +53,7 @@ export const ProteinCategorySection = ({
         
         // For each unique category, get subcategories and counts
         const categoriesWithData = await Promise.all(
-          uniqueCategories.map(async (category, index) => {
+          uniqueCategories.map(async (category) => {
             // Get subcategories for this category
             const { data: subcategoriesData, error: subcategoriesError } = await supabase
               .from('protein_classifications')
@@ -92,7 +92,7 @@ export const ProteinCategorySection = ({
             const sortedSubcategories = subcategoriesWithCounts.sort((a, b) => b.count - a.count);
             
             return {
-              category: `${index + 1}. ${category}`,
+              category: category, // Removed the index + 1 prefix
               subcategories: sortedSubcategories,
               count: categoryCount || 0
             };
