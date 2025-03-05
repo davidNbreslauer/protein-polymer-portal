@@ -1,32 +1,29 @@
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Header } from "@/components/Header";
-import { Sidebar } from "@/components/Sidebar";
 import { useArticles } from "@/hooks/useArticles";
-import { ActiveFilters } from "./index/ActiveFilters";
-import { ArticlesList } from "./index/ArticlesList";
-import { PageSizeSelector } from "./index/PageSizeSelector";
-import { ResultsInfo } from "./index/ResultsInfo";
+import { useFilterState } from "@/hooks/useFilterState";
+import { usePagination } from "@/hooks/usePagination";
+import { FilterControls } from "./index/FilterControls";
+import { SearchResults } from "./index/SearchResults";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ 
-    proteinFamily: [] as string[], 
-    proteinType: [] as string[],
-    proteinCategory: [] as string[],
-    proteinSubcategory: [] as string[],
-    showBookmarksOnly: false,
-    sortDirection: 'desc' as 'asc' | 'desc',
-    showReviewsOnly: false,
-    excludeReviews: false,
-    startDate: null as Date | null,
-    endDate: null as Date | null
-  });
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const { 
+    filters, 
+    handleFilterChange, 
+    handleClearFilter, 
+    clearAllFilters 
+  } = useFilterState();
   
-  // Create a ref to the sidebar to access its clearAll method
-  const sidebarRef = useRef<{ clearAll: () => void } | null>(null);
+  const {
+    currentPage,
+    pageSize,
+    handleNextPage,
+    handlePrevPage,
+    handlePageSizeChange,
+    resetPage
+  } = usePagination();
   
   const { data, isLoading, error } = useArticles(searchQuery, filters, currentPage, pageSize);
   const articles = data?.articles || [];
@@ -34,128 +31,22 @@ const Index = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(0); // Reset to first page on new search
+    resetPage(); // Reset to first page on new search
   };
 
-  const handleFilterChange = (newFilters: { 
-    proteinFamily: string[], 
-    proteinType?: string[],
-    proteinCategory?: string[],
-    proteinSubcategory?: string[],
-    showBookmarksOnly?: boolean,
-    sortDirection?: 'asc' | 'desc',
-    showReviewsOnly?: boolean,
-    excludeReviews?: boolean,
-    startDate?: Date | null,
-    endDate?: Date | null
-  }) => {
-    console.log("Filter change in Index component:", newFilters);
-    
-    setFilters(prev => ({
-      ...prev,
-      proteinFamily: newFilters.proteinFamily,
-      proteinType: newFilters.proteinType ?? prev.proteinType,
-      proteinCategory: newFilters.proteinCategory ?? prev.proteinCategory,
-      proteinSubcategory: newFilters.proteinSubcategory ?? prev.proteinSubcategory,
-      showBookmarksOnly: newFilters.showBookmarksOnly ?? prev.showBookmarksOnly,
-      sortDirection: newFilters.sortDirection ?? prev.sortDirection,
-      showReviewsOnly: newFilters.showReviewsOnly ?? prev.showReviewsOnly,
-      excludeReviews: newFilters.excludeReviews ?? prev.excludeReviews,
-      startDate: newFilters.startDate !== undefined ? newFilters.startDate : prev.startDate,
-      endDate: newFilters.endDate !== undefined ? newFilters.endDate : prev.endDate
-    }));
-    setCurrentPage(0); // Reset to first page on filter change
+  const handleFilterChangeWithReset = (newFilters: any) => {
+    handleFilterChange(newFilters);
+    resetPage(); // Reset to first page on filter change
   };
 
-  const handleClearFilter = (type: 'category' | 'subcategory' | 'proteinFamily' | 'proteinType' | 'date' | 'viewOption', value: string) => {
-    if (type === 'category') {
-      // When clearing a category, also clear its subcategories
-      const categoryToRemove = value;
-      // Find all subcategories that belong to this category to remove them
-      const categoryIndex = value.indexOf('. ');
-      const categoryName = categoryIndex !== -1 ? value.substring(categoryIndex + 2) : value;
-      
-      setFilters(prev => ({
-        ...prev,
-        proteinCategory: prev.proteinCategory.filter(c => !c.includes(categoryName)),
-        // Remove subcategories that start with the category name
-        proteinSubcategory: prev.proteinSubcategory.filter(sc => !sc.startsWith(`${categoryName}: `))
-      }));
-    } else if (type === 'subcategory') {
-      // Just remove the specific subcategory
-      setFilters(prev => ({
-        ...prev,
-        proteinSubcategory: prev.proteinSubcategory.filter(sc => sc !== value)
-      }));
-    } else if (type === 'proteinFamily') {
-      // Remove the specific protein family
-      setFilters(prev => ({
-        ...prev,
-        proteinFamily: prev.proteinFamily.filter(f => f !== value)
-      }));
-    } else if (type === 'proteinType') {
-      // Remove the specific protein type
-      setFilters(prev => ({
-        ...prev,
-        proteinType: prev.proteinType.filter(t => t !== value)
-      }));
-    } else if (type === 'date') {
-      // Clear date range
-      setFilters(prev => ({
-        ...prev,
-        startDate: null,
-        endDate: null
-      }));
-    } else if (type === 'viewOption') {
-      // Clear specific view option based on value
-      if (value === 'showBookmarksOnly') {
-        setFilters(prev => ({ ...prev, showBookmarksOnly: false }));
-      } else if (value === 'showReviewsOnly') {
-        setFilters(prev => ({ ...prev, showReviewsOnly: false }));
-      } else if (value === 'excludeReviews') {
-        setFilters(prev => ({ ...prev, excludeReviews: false }));
-      }
-    }
-    setCurrentPage(0);
+  const handleClearFilterWithReset = (type: 'category' | 'subcategory' | 'proteinFamily' | 'proteinType' | 'date' | 'viewOption', value: string) => {
+    handleClearFilter(type, value);
+    resetPage(); // Reset to first page on filter change
   };
 
   const handleClearAllFilters = () => {
-    // Reset filters in the Index component state
-    setFilters({
-      proteinFamily: [],
-      proteinType: [],
-      proteinCategory: [],
-      proteinSubcategory: [],
-      showBookmarksOnly: false,
-      sortDirection: 'desc',
-      showReviewsOnly: false,
-      excludeReviews: false,
-      startDate: null,
-      endDate: null
-    });
-    
-    // Also call the sidebar's clearAll function to reset its internal state
-    if (sidebarRef.current) {
-      sidebarRef.current.clearAll();
-    }
-    
-    setCurrentPage(0);
-  };
-
-  const handleNextPage = () => {
-    if (articles && articles.length === pageSize) { // If we have a full page, there might be more
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    setCurrentPage(prev => Math.max(0, prev - 1));
-  };
-
-  const handlePageSizeChange = (value: string) => {
-    const newSize = parseInt(value, 10);
-    setPageSize(newSize);
-    setCurrentPage(0); // Reset to first page when changing page size
+    clearAllFilters();
+    resetPage(); // Reset to first page on filter change
   };
 
   return (
@@ -163,54 +54,25 @@ const Index = () => {
       <Header searchQuery={searchQuery} onSearchChange={handleSearch} />
 
       <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
-        <div className="flex gap-6">
-          <div className="pt-4">
-            <Sidebar 
-              ref={sidebarRef}
-              onFilterChange={handleFilterChange} 
-            />
-          </div>
-
-          <div className="flex-1 space-y-4 pt-4">
-            <ActiveFilters 
-              proteinCategories={filters.proteinCategory}
-              proteinSubcategories={filters.proteinSubcategory}
-              proteinFamilies={filters.proteinFamily}
-              proteinTypes={filters.proteinType}
-              startDate={filters.startDate}
-              endDate={filters.endDate}
-              showBookmarksOnly={filters.showBookmarksOnly}
-              showReviewsOnly={filters.showReviewsOnly}
-              excludeReviews={filters.excludeReviews}
-              onClearFilter={handleClearFilter}
-              onClearAll={handleClearAllFilters}
-            />
-            
-            <div className="flex justify-between items-center">
-              <ResultsInfo 
-                articlesCount={articles.length}
-                totalCount={totalCount}
-                isLoading={isLoading}
-                hasError={!!error}
-              />
-
-              <PageSizeSelector
-                pageSize={pageSize}
-                onPageSizeChange={handlePageSizeChange}
-              />
-            </div>
-
-            <ArticlesList
-              articles={articles}
-              isLoading={isLoading}
-              error={error}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              onNextPage={handleNextPage}
-              onPrevPage={handlePrevPage}
-            />
-          </div>
+        <FilterControls 
+          filters={filters}
+          onFilterChange={handleFilterChangeWithReset}
+          onClearFilter={handleClearFilterWithReset}
+          onClearAll={handleClearAllFilters}
+        />
+        
+        <div className="flex-1 space-y-4 pt-4">
+          <SearchResults 
+            articles={articles}
+            totalCount={totalCount}
+            isLoading={isLoading}
+            error={error}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onNextPage={() => handleNextPage(articles.length)}
+            onPrevPage={handlePrevPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       </main>
     </div>
