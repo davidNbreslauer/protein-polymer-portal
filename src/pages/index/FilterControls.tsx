@@ -31,29 +31,25 @@ export const FilterControls = ({
   };
 
   return (
-    <div className="flex gap-6">
-      <div className="pt-4">
-        <Sidebar 
-          ref={sidebarRef}
-          onFilterChange={onFilterChange} 
-        />
-      </div>
-
-      <div className="flex-1 space-y-4 pt-4">
-        <ActiveFilters 
-          proteinCategories={filters.proteinCategory}
-          proteinSubcategories={filters.proteinSubcategory}
-          proteinFamilies={filters.proteinFamily}
-          proteinTypes={filters.proteinType}
-          startDate={filters.startDate}
-          endDate={filters.endDate}
-          showBookmarksOnly={filters.showBookmarksOnly}
-          showReviewsOnly={filters.showReviewsOnly}
-          excludeReviews={filters.excludeReviews}
-          onClearFilter={onClearFilter}
-          onClearAll={handleClearAllFilters}
-        />
-      </div>
+    <div className="space-y-4">
+      <Sidebar 
+        ref={sidebarRef}
+        onFilterChange={onFilterChange} 
+      />
+      
+      <ActiveFilters 
+        proteinCategories={filters.proteinCategory}
+        proteinSubcategories={filters.proteinSubcategory}
+        proteinFamilies={filters.proteinFamily}
+        proteinTypes={filters.proteinType}
+        startDate={filters.startDate}
+        endDate={filters.endDate}
+        showBookmarksOnly={filters.showBookmarksOnly}
+        showReviewsOnly={filters.showReviewsOnly}
+        excludeReviews={filters.excludeReviews}
+        onClearFilter={onClearFilter}
+        onClearAll={handleClearAllFilters}
+      />
     </div>
   );
 };

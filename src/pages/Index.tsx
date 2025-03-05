@@ -54,25 +54,29 @@ const Index = () => {
       <Header searchQuery={searchQuery} onSearchChange={handleSearch} />
 
       <main className="pt-[180px] pb-8 px-4 max-w-7xl mx-auto">
-        <FilterControls 
-          filters={filters}
-          onFilterChange={handleFilterChangeWithReset}
-          onClearFilter={handleClearFilterWithReset}
-          onClearAll={handleClearAllFilters}
-        />
-        
-        <div className="flex-1 space-y-4 pt-4">
-          <SearchResults 
-            articles={articles}
-            totalCount={totalCount}
-            isLoading={isLoading}
-            error={error}
-            currentPage={currentPage}
-            pageSize={pageSize}
-            onNextPage={handleNextPage}
-            onPrevPage={handlePrevPage}
-            onPageSizeChange={handlePageSizeChange}
-          />
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-64 shrink-0">
+            <FilterControls 
+              filters={filters}
+              onFilterChange={handleFilterChangeWithReset}
+              onClearFilter={handleClearFilterWithReset}
+              onClearAll={handleClearAllFilters}
+            />
+          </div>
+          
+          <div className="flex-1">
+            <SearchResults 
+              articles={articles}
+              totalCount={totalCount}
+              isLoading={isLoading}
+              error={error}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onNextPage={handleNextPage}
+              onPrevPage={handlePrevPage}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </div>
         </div>
       </main>
     </div>
