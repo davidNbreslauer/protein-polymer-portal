@@ -3,6 +3,7 @@ import { ResultsInfo } from "./ResultsInfo";
 import { PageSizeSelector } from "./PageSizeSelector";
 import { ArticlesList } from "./ArticlesList";
 import { Article } from "@/types/article";
+import { FilterOptions } from "@/components/sidebar/types";
 
 interface SearchResultsProps {
   articles: Article[];
@@ -11,6 +12,7 @@ interface SearchResultsProps {
   error: unknown;
   currentPage: number;
   pageSize: number;
+  filters: FilterOptions;
   onNextPage: () => void;
   onPrevPage: () => void;
   onPageSizeChange: (value: string) => void;
@@ -23,6 +25,7 @@ export const SearchResults = ({
   error,
   currentPage,
   pageSize,
+  filters,
   onNextPage,
   onPrevPage,
   onPageSizeChange
@@ -35,6 +38,10 @@ export const SearchResults = ({
           totalCount={totalCount || 0}
           isLoading={isLoading}
           hasError={!!error}
+          currentFilters={{
+            showReviewsOnly: filters.showReviewsOnly,
+            excludeReviews: filters.excludeReviews
+          }}
         />
         <PageSizeSelector
           pageSize={pageSize}
