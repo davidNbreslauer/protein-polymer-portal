@@ -72,7 +72,6 @@ const Index = () => {
               error={error}
               currentPage={currentPage}
               pageSize={pageSize}
-              filters={filters}
               onNextPage={handleNextPage}
               onPrevPage={handlePrevPage}
               onPageSizeChange={handlePageSizeChange}
