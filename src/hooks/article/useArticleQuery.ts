@@ -2,7 +2,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Article } from "@/types/article";
 import { FilterOptions, ArticlesResponse } from "./types";
-import { applySearchFilter, applyDateFilters, applyViewFilters } from "./filterUtils";
+import { 
+  applySearchFilter, 
+  applyDateFilters, 
+  applyViewFilters,
+  getProteinTypeFilteredIds,
+  applyProteinFilters,
+  applyBookmarkFilter
+} from "./filterUtils";
 
 export const fetchArticles = async (
   searchQuery: string = '', 
@@ -19,44 +26,19 @@ export const fetchArticles = async (
     let totalCount = 0;
     
     // Get filtered article IDs based on protein type if specified
-    let filteredArticleIds: number[] = [];
-    if (filters.proteinType?.length) {
-      const { data: proteinData } = await supabase
-        .from('proteins')
-        .select('article_id')
-        .in('type', filters.proteinType);
-      
-      filteredArticleIds = (proteinData || []).map(item => item.article_id);
-      
-      if (filteredArticleIds.length === 0) {
-        return { articles: [], totalCount: 0 };
-      }
+    const { filteredArticleIds, shouldReturn } = await getProteinTypeFilteredIds(filters);
+    
+    if (shouldReturn) {
+      return { articles: [], totalCount: 0 };
     }
     
     // Build count query to get total number of results
     let countQuery = supabase.from('articles')
       .select('*', { count: 'exact', head: true });
 
-    // Apply article ID filter if we have filtered IDs
-    if (filteredArticleIds.length > 0) {
-      countQuery = countQuery.in('id', filteredArticleIds);
-    }
-
-    // Apply protein category/subcategory filters
-    if (filters.proteinCategory?.length) {
-      countQuery = countQuery.overlaps('facets_protein_categories', filters.proteinCategory);
-    }
-
-    if (filters.proteinSubcategory?.length) {
-      countQuery = countQuery.overlaps('facets_protein_subcategories', filters.proteinSubcategory);
-    }
-
-    // Apply bookmark filter if requested
-    if (filters.showBookmarksOnly) {
-      countQuery = countQuery.in('id', bookmarkedArticleIds);
-    }
-
-    // Apply view filters (reviews only/exclude reviews)
+    // Apply filters to count query
+    countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);
+    countQuery = applyBookmarkFilter(countQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
     countQuery = applyViewFilters(countQuery, filters);
 
     // Apply search query if provided
@@ -86,23 +68,8 @@ export const fetchArticles = async (
       `);
 
     // Apply same filters to main query as we did to count query
-    if (filteredArticleIds.length > 0) {
-      query = query.in('id', filteredArticleIds);
-    }
-
-    if (filters.proteinCategory?.length) {
-      query = query.overlaps('facets_protein_categories', filters.proteinCategory);
-    }
-
-    if (filters.proteinSubcategory?.length) {
-      query = query.overlaps('facets_protein_subcategories', filters.proteinSubcategory);
-    }
-
-    if (filters.showBookmarksOnly) {
-      query = query.in('id', bookmarkedArticleIds);
-    }
-
-    // Apply view filters (reviews only/exclude reviews)
+    query = applyProteinFilters(query, filters, filteredArticleIds);
+    query = applyBookmarkFilter(query, !!filters.showBookmarksOnly, bookmarkedArticleIds);
     query = applyViewFilters(query, filters);
 
     // Apply search query if provided

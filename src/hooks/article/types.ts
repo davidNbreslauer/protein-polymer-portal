@@ -18,3 +18,8 @@ export interface ArticlesResponse {
   articles: Article[];
   totalCount: number;
 }
+
+export interface ProteinTypeFilterResult {
+  filteredArticleIds: number[];
+  shouldReturn: boolean;
+}
