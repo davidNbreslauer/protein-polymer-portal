@@ -25,6 +25,9 @@ export const fetchArticles = async (
 
     let totalCount = 0;
     
+    console.log('Fetching articles with filters:', JSON.stringify(filters, null, 2));
+    console.log('Search query:', searchQuery);
+    
     // Get filtered article IDs based on protein type if specified
     const { filteredArticleIds, shouldReturn } = await getProteinTypeFilteredIds(filters);
     
@@ -43,7 +46,12 @@ export const fetchArticles = async (
 
     // Apply search query if provided
     if (searchQuery) {
-      countQuery = applySearchFilter(countQuery, searchQuery);
+      try {
+        countQuery = applySearchFilter(countQuery, searchQuery);
+      } catch (error) {
+        console.error('Error applying search filter to count query:', error);
+        throw error;
+      }
     }
 
     // Apply date filters if provided
@@ -52,7 +60,11 @@ export const fetchArticles = async (
     // Get total count of matching articles
     const { count, error: countError } = await countQuery;
     
-    if (countError) throw countError;
+    if (countError) {
+      console.error('Error getting count:', countError);
+      throw countError;
+    }
+    
     totalCount = count || 0;
 
     // Build main query to fetch the actual articles with related data
@@ -74,7 +86,12 @@ export const fetchArticles = async (
 
     // Apply search query if provided
     if (searchQuery) {
-      query = applySearchFilter(query, searchQuery);
+      try {
+        query = applySearchFilter(query, searchQuery);
+      } catch (error) {
+        console.error('Error applying search filter to main query:', error);
+        throw error;
+      }
     }
 
     // Apply date filters if provided
@@ -85,8 +102,6 @@ export const fetchArticles = async (
 
     // Apply pagination
     query = query.range(page * pageSize, (page + 1) * pageSize - 1);
-
-    console.log('Fetching articles with filters:', JSON.stringify(filters, null, 2));
 
     // Execute main query
     const { data: articles, error } = await query;

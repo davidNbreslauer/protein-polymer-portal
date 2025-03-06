@@ -4,7 +4,20 @@ import { FilterOptions, ProteinTypeFilterResult } from "./types";
 
 // Apply search filter across multiple fields
 export const applySearchFilter = (query: any, searchQuery: string) => {
-  return query.or(
+  // Add array fields with special handling
+  const arrayFields = [
+    'facets_protein_family',
+    'facets_protein_form',
+    'facets_expression_system',
+    'facets_application',
+    'facets_structural_motifs',
+    'facets_tested_properties',
+    'facets_protein_categories',
+    'facets_protein_subcategories'
+  ];
+  
+  // Build the OR condition for text fields (non-array fields)
+  let textFieldsCondition = 
     `title.ilike.%${searchQuery}%,` +
     `abstract.ilike.%${searchQuery}%,` +
     `authors.ilike.%${searchQuery}%,` +
@@ -12,16 +25,18 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
     `summary.ilike.%${searchQuery}%,` + 
     `conclusions.ilike.%${searchQuery}%,` +
     `publication_type.ilike.%${searchQuery}%,` +
-    `language.ilike.%${searchQuery}%,` +
-    `facets_protein_family.ilike.%${searchQuery}%,` +
-    `facets_protein_form.ilike.%${searchQuery}%,` +
-    `facets_expression_system.ilike.%${searchQuery}%,` +
-    `facets_application.ilike.%${searchQuery}%,` +
-    `facets_structural_motifs.ilike.%${searchQuery}%,` +
-    `facets_tested_properties.ilike.%${searchQuery}%,` +
-    `facets_protein_categories.ilike.%${searchQuery}%,` +
-    `facets_protein_subcategories.ilike.%${searchQuery}%`
-  );
+    `language.ilike.%${searchQuery}%`;
+  
+  // First apply the filter for regular text fields
+  let filteredQuery = query.or(textFieldsCondition);
+  
+  // Then apply array containment checks for each array field
+  arrayFields.forEach(field => {
+    // This creates a condition like: articles.facets_protein_family.cs.{%searchQuery%}
+    filteredQuery = filteredQuery.or(`${field}.cs.{%${searchQuery}%}`);
+  });
+  
+  return filteredQuery;
 };
 
 // Apply date range filters
