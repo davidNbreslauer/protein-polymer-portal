@@ -13,7 +13,7 @@ export const SearchBar = ({ searchQuery, onSearchChange }: SearchBarProps) => {
         type="text"
         value={searchQuery}
         onChange={onSearchChange}
-        placeholder="Search by protein name, application, or properties..."
+        placeholder="Search across all aspects of papers (title, methods, results, etc.)..."
         className={cn(
           "w-full px-4 py-2.5 rounded-lg",
           "bg-gray-50 border border-gray-200",

@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Article } from "@/types/article";
@@ -19,14 +18,12 @@ interface FilterOptions {
 
 const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = {}, page: number = 0, pageSize: number = 10, bookmarkedArticleIds: number[] = []) => {
   try {
-    // If showing bookmarks only and there are no bookmarks, return empty result
     if (filters.showBookmarksOnly && (!bookmarkedArticleIds || bookmarkedArticleIds.length === 0)) {
       return { articles: [], totalCount: 0 };
     }
 
     let totalCount = 0;
     
-    // First, if we have protein type filters, get the matching article IDs
     let filteredArticleIds: number[] = [];
     if (filters.proteinType?.length) {
       const { data: proteinData } = await supabase
@@ -36,22 +33,18 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       
       filteredArticleIds = (proteinData || []).map(item => item.article_id);
       
-      // If no articles match the protein type filter, return empty result
       if (filteredArticleIds.length === 0) {
         return { articles: [], totalCount: 0 };
       }
     }
     
-    // Handle count based on filter conditions
     let countQuery = supabase.from('articles')
       .select('*', { count: 'exact', head: true });
 
-    // Apply protein type filter to count query if specified
     if (filteredArticleIds.length > 0) {
       countQuery = countQuery.in('id', filteredArticleIds);
     }
 
-    // Apply protein category and subcategory filters
     if (filters.proteinCategory?.length) {
       countQuery = countQuery.overlaps('facets_protein_categories', filters.proteinCategory);
     }
@@ -64,7 +57,6 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       countQuery = countQuery.in('id', bookmarkedArticleIds);
     }
 
-    // Apply reviews filter to count query if requested
     if (filters.showReviewsOnly) {
       countQuery = countQuery.ilike('publication_type', '%review%');
     } else if (filters.excludeReviews) {
@@ -72,17 +64,32 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     }
 
     if (searchQuery) {
-      countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
+      countQuery = countQuery.or(
+        `title.ilike.%${searchQuery}%,` +
+        `abstract.ilike.%${searchQuery}%,` +
+        `authors.ilike.%${searchQuery}%,` +
+        `journal.ilike.%${searchQuery}%,` +
+        `summary.ilike.%${searchQuery}%,` + 
+        `conclusions.ilike.%${searchQuery}%,` +
+        `publication_type.ilike.%${searchQuery}%,` +
+        `language.ilike.%${searchQuery}%,` +
+        `facets_protein_family.ilike.%${searchQuery}%,` +
+        `facets_protein_form.ilike.%${searchQuery}%,` +
+        `facets_expression_system.ilike.%${searchQuery}%,` +
+        `facets_application.ilike.%${searchQuery}%,` +
+        `facets_structural_motifs.ilike.%${searchQuery}%,` +
+        `facets_tested_properties.ilike.%${searchQuery}%,` +
+        `facets_protein_categories.ilike.%${searchQuery}%,` +
+        `facets_protein_subcategories.ilike.%${searchQuery}%`
+      );
     }
 
-    // Date range filtering for count query
     if (filters.startDate) {
       const startDateStr = filters.startDate.toISOString().split('T')[0];
       countQuery = countQuery.gte('pub_date', startDateStr);
     }
     
     if (filters.endDate) {
-      // Add one day to include the end date
       const endDate = new Date(filters.endDate);
       endDate.setDate(endDate.getDate() + 1);
       const endDateStr = endDate.toISOString().split('T')[0];
@@ -94,7 +101,6 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
     if (countError) throw countError;
     totalCount = count || 0;
 
-    // Build the main query with proper foreign table syntax
     let query = supabase
       .from('articles')
       .select(`
@@ -106,12 +112,10 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
         results(*)
       `);
 
-    // Apply protein type filter if specified
     if (filteredArticleIds.length > 0) {
       query = query.in('id', filteredArticleIds);
     }
 
-    // Apply protein category and subcategory filters
     if (filters.proteinCategory?.length) {
       query = query.overlaps('facets_protein_categories', filters.proteinCategory);
     }
@@ -120,46 +124,55 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       query = query.overlaps('facets_protein_subcategories', filters.proteinSubcategory);
     }
 
-    // Apply bookmarks filter if requested
     if (filters.showBookmarksOnly) {
       query = query.in('id', bookmarkedArticleIds);
     }
 
-    // Apply reviews filter if requested
     if (filters.showReviewsOnly) {
       query = query.ilike('publication_type', '%review%');
     } else if (filters.excludeReviews) {
       query = query.not('publication_type', 'ilike', '%review%');
     }
 
-    // Apply text search filter across all relevant fields
     if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
+      query = query.or(
+        `title.ilike.%${searchQuery}%,` +
+        `abstract.ilike.%${searchQuery}%,` +
+        `authors.ilike.%${searchQuery}%,` +
+        `journal.ilike.%${searchQuery}%,` +
+        `summary.ilike.%${searchQuery}%,` + 
+        `conclusions.ilike.%${searchQuery}%,` +
+        `publication_type.ilike.%${searchQuery}%,` +
+        `language.ilike.%${searchQuery}%,` +
+        `facets_protein_family.ilike.%${searchQuery}%,` +
+        `facets_protein_form.ilike.%${searchQuery}%,` +
+        `facets_expression_system.ilike.%${searchQuery}%,` +
+        `facets_application.ilike.%${searchQuery}%,` +
+        `facets_structural_motifs.ilike.%${searchQuery}%,` +
+        `facets_tested_properties.ilike.%${searchQuery}%,` +
+        `facets_protein_categories.ilike.%${searchQuery}%,` +
+        `facets_protein_subcategories.ilike.%${searchQuery}%`
+      );
     }
 
-    // Date range filtering for main query
     if (filters.startDate) {
       const startDateStr = filters.startDate.toISOString().split('T')[0];
       query = query.gte('pub_date', startDateStr);
     }
     
     if (filters.endDate) {
-      // Add one day to include the end date
       const endDate = new Date(filters.endDate);
       endDate.setDate(endDate.getDate() + 1);
       const endDateStr = endDate.toISOString().split('T')[0];
       query = query.lt('pub_date', endDateStr);
     }
 
-    // Apply sorting (default to descending if not specified)
     query = query.order('pub_date', { ascending: filters.sortDirection === 'asc' });
 
-    // Apply pagination with dynamic page size
     query = query.range(page * pageSize, (page + 1) * pageSize - 1);
 
     console.log('Fetching articles with filters:', JSON.stringify(filters, null, 2));
 
-    // Execute the query
     const { data: articles, error } = await query;
     
     if (error) {
@@ -172,7 +185,6 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       return { articles: [], totalCount: 0 };
     }
 
-    // Filter by protein family if specified
     let filteredArticles = articles;
     
     if (filters.proteinFamily?.length) {
@@ -199,6 +211,6 @@ export const useArticles = (searchQuery: string, filters: FilterOptions = {}, pa
   return useQuery({
     queryKey: ['articles', searchQuery, filters, page, pageSize, bookmarkedArticleIds],
     queryFn: () => fetchArticles(searchQuery, filters, page, pageSize, bookmarkedArticleIds),
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };
