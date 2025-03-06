@@ -12,7 +12,19 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
   console.log('Applying search filter with query:', sanitizedQuery);
   
   try {
-    // Add array fields with special handling
+    // Simple text fields to search directly
+    const textFields = [
+      'title',
+      'abstract',
+      'authors',
+      'journal',
+      'summary',
+      'conclusions',
+      'publication_type',
+      'language'
+    ];
+    
+    // Array fields that need special handling
     const arrayFields = [
       'facets_protein_family',
       'facets_protein_form',
@@ -24,24 +36,21 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'facets_protein_subcategories'
     ];
     
-    // Build the OR condition for text fields (non-array fields)
-    const textFieldsCondition = 
-      `title.ilike.%${sanitizedQuery}%,` +
-      `abstract.ilike.%${sanitizedQuery}%,` +
-      `authors.ilike.%${sanitizedQuery}%,` +
-      `journal.ilike.%${sanitizedQuery}%,` +
-      `summary.ilike.%${sanitizedQuery}%,` + 
-      `conclusions.ilike.%${sanitizedQuery}%,` +
-      `publication_type.ilike.%${sanitizedQuery}%,` +
-      `language.ilike.%${sanitizedQuery}%`;
+    // Start with an empty filter string
+    let filterString = '';
+    
+    // Add all text fields with OR conditions
+    textFields.forEach((field, index) => {
+      if (index > 0) filterString += ',';
+      filterString += `${field}.ilike.%${sanitizedQuery}%`;
+    });
     
     // First apply the filter for regular text fields
-    let filteredQuery = query.or(textFieldsCondition);
+    let filteredQuery = query.or(filterString);
     
-    // For array fields, we use a different approach with text conversion
-    // This converts the array to text and then does the search
+    // For array fields, convert to text first to avoid syntax errors
     for (const field of arrayFields) {
-      // Check if any array element contains the search string
+      // This converts the array to text before searching
       filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
     }
     

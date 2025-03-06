@@ -36,6 +36,10 @@ export const ArticlesList = ({
 
   if (error) {
     console.error('Error in ArticlesList:', error);
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Unknown error';
+    
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
         <AlertTriangle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
@@ -45,7 +49,7 @@ export const ArticlesList = ({
             Please try again later or refine your search criteria.
           </p>
           <p className="text-xs mt-2 text-red-400">
-            Technical details: {error instanceof Error ? error.message || 'Database connection issue' : 'Database connection issue'}
+            Technical details: {errorMessage}
           </p>
         </div>
       </div>

@@ -35,38 +35,63 @@ export const fetchArticles = async (
       return { articles: [], totalCount: 0 };
     }
     
-    // Build count query to get total number of results
-    let countQuery = supabase.from('articles')
-      .select('id', { count: 'exact', head: true });
-
-    // Apply filters to count query
-    countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);
-    countQuery = applyBookmarkFilter(countQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
-    countQuery = applyViewFilters(countQuery, filters);
-
-    // Apply search query if provided
-    if (searchQuery && searchQuery.trim() !== '') {
+    // For search queries, try using a database function first if it's just a simple text search
+    if (searchQuery && searchQuery.trim() !== '' && !filters.proteinCategory?.length && 
+        !filters.proteinSubcategory?.length && !filters.proteinFamily?.length && 
+        !filters.proteinType?.length && !filters.startDate && !filters.endDate) {
       try {
-        countQuery = applySearchFilter(countQuery, searchQuery.trim());
+        // Using the count_filtered_articles function for simple searches
+        const { data: countData, error: countFnError } = await supabase
+          .rpc('count_filtered_articles', { search_query: searchQuery.trim() });
+          
+        if (!countFnError && countData !== null) {
+          totalCount = countData;
+          console.log('Count from function:', totalCount);
+        } else {
+          console.error('Error using count function:', countFnError);
+          // Continue with the normal approach below if the function call fails
+        }
       } catch (error) {
-        console.error('Error applying search filter to count query:', error);
-        throw new Error('Invalid search query. Please try a different search term.');
+        console.error('Error calling count function:', error);
+        // Continue with the normal approach below
       }
     }
-
-    // Apply date filters if provided
-    countQuery = applyDateFilters(countQuery, filters.startDate, filters.endDate);
-
-    // Get total count of matching articles
-    const { count, error: countError } = await countQuery;
     
-    if (countError) {
-      console.error('Error getting count:', countError);
-      throw new Error(countError.message || 'Failed to count matching articles');
+    // Only do the manual count if we didn't get it from the function
+    if (totalCount === 0) {
+      // Build count query to get total number of results
+      let countQuery = supabase.from('articles')
+        .select('id', { count: 'exact', head: true });
+
+      // Apply filters to count query
+      countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);
+      countQuery = applyBookmarkFilter(countQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
+      countQuery = applyViewFilters(countQuery, filters);
+
+      // Apply search query if provided
+      if (searchQuery && searchQuery.trim() !== '') {
+        try {
+          countQuery = applySearchFilter(countQuery, searchQuery.trim());
+        } catch (error) {
+          console.error('Error applying search filter to count query:', error);
+          throw new Error('Invalid search query. Please try a different search term.');
+        }
+      }
+
+      // Apply date filters if provided
+      countQuery = applyDateFilters(countQuery, filters.startDate, filters.endDate);
+
+      // Get total count of matching articles
+      const { count, error: countError } = await countQuery;
+      
+      if (countError) {
+        console.error('Error getting count:', countError);
+        throw new Error('Failed to count matching articles: ' + (countError.message || 'Unknown error'));
+      }
+      
+      totalCount = count || 0;
+      console.log('Total count of articles:', totalCount);
     }
-    
-    totalCount = count || 0;
-    console.log('Total count of articles:', totalCount);
 
     // If no articles match our criteria, return early
     if (totalCount === 0) {
@@ -114,7 +139,7 @@ export const fetchArticles = async (
     
     if (error) {
       console.error('Error fetching articles:', error);
-      throw new Error(error.message || 'Failed to fetch articles');
+      throw new Error('Failed to fetch articles: ' + (error.message || 'Unknown error'));
     }
     
     if (!articles || articles.length === 0) {

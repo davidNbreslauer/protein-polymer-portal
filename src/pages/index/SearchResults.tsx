@@ -40,7 +40,7 @@ export const SearchResults = ({
     if (error) {
       const errorMessage = error instanceof Error && error.message 
         ? error.message 
-        : "Database connection issue. Please try again later.";
+        : "An error occurred while searching. Please try again.";
         
       toast({
         title: "Search error",
