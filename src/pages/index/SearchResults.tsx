@@ -38,9 +38,13 @@ export const SearchResults = ({
   // Show toast notification for errors
   useEffect(() => {
     if (error) {
+      const errorMessage = error instanceof Error && error.message 
+        ? error.message 
+        : "Database connection issue. Please try again later.";
+        
       toast({
         title: "Search error",
-        description: "There was a problem with your search. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }

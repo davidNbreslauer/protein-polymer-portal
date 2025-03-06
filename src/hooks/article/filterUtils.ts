@@ -11,39 +11,45 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
   const sanitizedQuery = searchQuery.trim();
   console.log('Applying search filter with query:', sanitizedQuery);
   
-  // Add array fields with special handling
-  const arrayFields = [
-    'facets_protein_family',
-    'facets_protein_form',
-    'facets_expression_system',
-    'facets_application',
-    'facets_structural_motifs',
-    'facets_tested_properties',
-    'facets_protein_categories',
-    'facets_protein_subcategories'
-  ];
-  
-  // Build the OR condition for text fields (non-array fields)
-  const textFieldsCondition = 
-    `title.ilike.%${sanitizedQuery}%,` +
-    `abstract.ilike.%${sanitizedQuery}%,` +
-    `authors.ilike.%${sanitizedQuery}%,` +
-    `journal.ilike.%${sanitizedQuery}%,` +
-    `summary.ilike.%${sanitizedQuery}%,` + 
-    `conclusions.ilike.%${sanitizedQuery}%,` +
-    `publication_type.ilike.%${sanitizedQuery}%,` +
-    `language.ilike.%${sanitizedQuery}%`;
-  
-  // First apply the filter for regular text fields
-  let filteredQuery = query.or(textFieldsCondition);
-  
-  // For array fields, we need a different approach
-  for (const field of arrayFields) {
-    // Check if any array element contains the search string
-    filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
+  try {
+    // Add array fields with special handling
+    const arrayFields = [
+      'facets_protein_family',
+      'facets_protein_form',
+      'facets_expression_system',
+      'facets_application',
+      'facets_structural_motifs',
+      'facets_tested_properties',
+      'facets_protein_categories',
+      'facets_protein_subcategories'
+    ];
+    
+    // Build the OR condition for text fields (non-array fields)
+    const textFieldsCondition = 
+      `title.ilike.%${sanitizedQuery}%,` +
+      `abstract.ilike.%${sanitizedQuery}%,` +
+      `authors.ilike.%${sanitizedQuery}%,` +
+      `journal.ilike.%${sanitizedQuery}%,` +
+      `summary.ilike.%${sanitizedQuery}%,` + 
+      `conclusions.ilike.%${sanitizedQuery}%,` +
+      `publication_type.ilike.%${sanitizedQuery}%,` +
+      `language.ilike.%${sanitizedQuery}%`;
+    
+    // First apply the filter for regular text fields
+    let filteredQuery = query.or(textFieldsCondition);
+    
+    // For array fields, we use a different approach with text conversion
+    // This converts the array to text and then does the search
+    for (const field of arrayFields) {
+      // Check if any array element contains the search string
+      filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
+    }
+    
+    return filteredQuery;
+  } catch (error) {
+    console.error('Error in applySearchFilter:', error);
+    throw new Error('Search query syntax error. Please try a different search term.');
   }
-  
-  return filteredQuery;
 };
 
 // Apply date range filters
@@ -84,24 +90,29 @@ export const getProteinTypeFilteredIds = async (filters: FilterOptions): Promise
     return { filteredArticleIds: [], shouldReturn: false };
   }
   
-  const { data: proteinData, error } = await supabase
-    .from('proteins')
-    .select('article_id')
-    .in('type', filters.proteinType);
-  
-  if (error) {
-    console.error('Error fetching protein type data:', error);
+  try {
+    const { data: proteinData, error } = await supabase
+      .from('proteins')
+      .select('article_id')
+      .in('type', filters.proteinType);
+    
+    if (error) {
+      console.error('Error fetching protein type data:', error);
+      throw new Error(error.message || 'Failed to fetch protein types');
+    }
+    
+    const filteredArticleIds = (proteinData || []).map(item => item.article_id);
+    
+    // If no articles match the protein type filter, return early
+    if (filteredArticleIds.length === 0) {
+      return { filteredArticleIds: [], shouldReturn: true };
+    }
+    
+    return { filteredArticleIds, shouldReturn: false };
+  } catch (error) {
+    console.error('Error in getProteinTypeFilteredIds:', error);
     throw error;
   }
-  
-  const filteredArticleIds = (proteinData || []).map(item => item.article_id);
-  
-  // If no articles match the protein type filter, return early
-  if (filteredArticleIds.length === 0) {
-    return { filteredArticleIds: [], shouldReturn: true };
-  }
-  
-  return { filteredArticleIds, shouldReturn: false };
 };
 
 // Apply protein category/subcategory filters

@@ -50,7 +50,7 @@ export const fetchArticles = async (
         countQuery = applySearchFilter(countQuery, searchQuery.trim());
       } catch (error) {
         console.error('Error applying search filter to count query:', error);
-        throw error;
+        throw new Error('Invalid search query. Please try a different search term.');
       }
     }
 
@@ -62,7 +62,7 @@ export const fetchArticles = async (
     
     if (countError) {
       console.error('Error getting count:', countError);
-      throw countError;
+      throw new Error(countError.message || 'Failed to count matching articles');
     }
     
     totalCount = count || 0;
@@ -96,7 +96,7 @@ export const fetchArticles = async (
         query = applySearchFilter(query, searchQuery.trim());
       } catch (error) {
         console.error('Error applying search filter to main query:', error);
-        throw error;
+        throw new Error('Invalid search query. Please try a different search term.');
       }
     }
 
@@ -114,7 +114,7 @@ export const fetchArticles = async (
     
     if (error) {
       console.error('Error fetching articles:', error);
-      throw error;
+      throw new Error(error.message || 'Failed to fetch articles');
     }
     
     if (!articles || articles.length === 0) {
@@ -141,6 +141,11 @@ export const fetchArticles = async (
     };
   } catch (error) {
     console.error('Error in fetchArticles:', error);
-    throw error;
+    // Ensure we're always throwing an Error object with a message
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('Failed to fetch articles. Please try again later.');
+    }
   }
 };

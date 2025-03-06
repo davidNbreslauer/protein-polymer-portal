@@ -45,7 +45,7 @@ export const ArticlesList = ({
             Please try again later or refine your search criteria.
           </p>
           <p className="text-xs mt-2 text-red-400">
-            Technical details: {error instanceof Error ? error.message : 'Unknown error'}
+            Technical details: {error instanceof Error ? error.message || 'Database connection issue' : 'Database connection issue'}
           </p>
         </div>
       </div>
