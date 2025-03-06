@@ -1,17 +1,13 @@
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useArticleStats } from '@/hooks/useArticleStats';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, ExternalLink, ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 const Stats = () => {
   const { data: stats, isLoading, error } = useArticleStats();
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -39,104 +35,13 @@ const Stats = () => {
     );
   }
 
-  const renderChartSection = (
-    data: { name: string; count: number; articles?: { pubmed_id?: string; title: string }[] }[],
-    title: string,
-    articlesWithoutCategories: { id: number; title: string; pubmed_id?: string }[]
-  ) => {
-    const chartData = data.filter(item => item.count > 1);
-    const singleCountItems = data
-      .filter(item => item.count === 1)
-      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
-    const sectionKey = title.toLowerCase().replace(/\s+/g, '-');
-
-    return (
-      <Card className="p-4 mb-6">
-        <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        {chartData.length > 0 && (
-          <ScrollArea className="h-[400px] w-full">
-            <div className="min-w-[800px]">
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={chartData} layout="vertical" margin={{ left: 150 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis type="category" dataKey="name" width={140} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#4f46e5" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </ScrollArea>
-        )}
-        
-        {singleCountItems.length > 0 && (
-          <Collapsible
-            open={openSections[`${sectionKey}-single`]}
-            onOpenChange={(isOpen) =>
-              setOpenSections((prev) => ({ ...prev, [`${sectionKey}-single`]: isOpen }))
-            }
-            className="mt-4"
-          >
-            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
-              {openSections[`${sectionKey}-single`] ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              Items with single occurrence ({singleCountItems.length})
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {singleCountItems.map((item) => (
-                  <span key={item.name} className="text-sm text-gray-600">
-                    {item.name}
-                  </span>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {articlesWithoutCategories.length > 0 && (
-          <Collapsible
-            open={openSections[`${sectionKey}-none`]}
-            onOpenChange={(isOpen) =>
-              setOpenSections((prev) => ({ ...prev, [`${sectionKey}-none`]: isOpen }))
-            }
-            className="mt-4"
-          >
-            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
-              {openSections[`${sectionKey}-none`] ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              Papers with no {title.toLowerCase()} ({articlesWithoutCategories.length})
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <div className="grid grid-cols-1 gap-2">
-                {articlesWithoutCategories.map((article) => (
-                  <div key={article.id} className="text-sm text-gray-600">
-                    {article.title}
-                    {article.pubmed_id && (
-                      <a
-                        href={`https://pubmed.ncbi.nlm.nih.gov/${article.pubmed_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-2 inline-flex items-center text-blue-500 hover:text-blue-700"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-      </Card>
-    );
-  };
+  // Sort proteins first by count (descending) and then alphabetically
+  const sortedProteins = [...stats.proteins].sort((a, b) => {
+    if (b.count !== a.count) {
+      return b.count - a.count; // Sort by count (most to least)
+    }
+    return a.name.localeCompare(b.name); // Then alphabetically
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -160,13 +65,20 @@ const Stats = () => {
         )}
       </div>
       
-      {stats.proteins.length > 0 && (
-        renderChartSection(stats.proteins, "Proteins Distribution", stats.articlesWithoutProteins)
-      )}
-      
-      {stats.materials.length > 0 && (
-        renderChartSection(stats.materials, "Materials Distribution", stats.articlesWithoutMaterials)
-      )}
+      <Card className="p-4 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Protein Names</h2>
+        <ScrollArea className="h-[600px]">
+          <div className="space-y-1">
+            {sortedProteins.map((protein) => (
+              <div key={protein.name} className="py-1">
+                <span className="font-medium">
+                  {protein.name} {protein.count > 1 ? `(${protein.count})` : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </Card>
     </div>
   );
 };
