@@ -10,32 +10,25 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
   const sanitizedQuery = searchQuery.trim();
   console.log('Applying search filter with query:', sanitizedQuery);
   
-  try {
-    // Simple text fields to search directly
-    const textFields = [
-      'title',
-      'abstract',
-      'authors',
-      'journal',
-      'summary',
-      'conclusions',
-      'publication_type',
-      'language'
-    ];
-    
-    // Build a simple OR condition for basic text fields
-    let filteredQuery = query.or(`${textFields[0]}.ilike.%${sanitizedQuery}%`);
-    
-    // Add remaining text fields to the OR condition
-    for (let i = 1; i < textFields.length; i++) {
-      filteredQuery = filteredQuery.or(`${textFields[i]}.ilike.%${sanitizedQuery}%`);
-    }
-    
-    return filteredQuery;
-  } catch (error) {
-    console.error('Error in applySearchFilter:', error);
-    throw new Error('Search query syntax error. Please try a different search term.');
-  }
+  // Only use basic text fields to avoid SQL parsing errors
+  const textFields = [
+    'title',
+    'abstract',
+    'authors', 
+    'journal',
+    'summary',
+    'conclusions',
+    'publication_type',
+    'language'
+  ];
+  
+  // Build a more reliable filter using OR conditions for text fields
+  let conditions = textFields.map(field => 
+    `${field}.ilike.%${sanitizedQuery}%`
+  );
+  
+  // Use explicit or() method with spread operator to apply all conditions
+  return query.or(conditions.join(','));
 };
 
 // Apply date range filters

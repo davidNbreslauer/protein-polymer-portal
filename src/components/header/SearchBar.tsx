@@ -38,8 +38,20 @@ export const SearchBar = ({ searchQuery, onSearchChange }: SearchBarProps) => {
     }
   }, [localQuery, isTyping]);
 
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Force trigger the onSearchChange with current value
+    const syntheticEvent = {
+      target: { value: localQuery },
+      currentTarget: { value: localQuery },
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onSearchChange(syntheticEvent);
+  };
+
   return (
-    <div className="relative">
+    <form onSubmit={handleSubmit} className="relative w-full">
       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
         <Search size={18} />
       </div>
@@ -58,6 +70,8 @@ export const SearchBar = ({ searchQuery, onSearchChange }: SearchBarProps) => {
           isTyping ? "border-primary" : ""
         )}
       />
-    </div>
+      
+      <button type="submit" className="hidden">Search</button>
+    </form>
   );
 };

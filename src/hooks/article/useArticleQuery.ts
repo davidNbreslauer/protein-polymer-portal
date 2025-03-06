@@ -73,18 +73,6 @@ export const fetchArticles = async (
       }
     }
 
-    // If no articles match our criteria, return early
-    if (totalCount === 0 && searchQuery && searchQuery.trim() !== '') {
-      // Try one more time with a more basic count
-      const { count, error } = await supabase
-        .from('articles')
-        .select('id', { count: 'exact', head: true });
-        
-      if (!error) {
-        totalCount = count || 0;
-      }
-    }
-
     // Build main query to fetch articles
     let query = supabase
       .from('articles')
@@ -127,16 +115,11 @@ export const fetchArticles = async (
       throw new Error('Failed to fetch articles: ' + (error.message || 'Unknown error'));
     }
     
-    if (!articles || articles.length === 0) {
-      console.log('No articles found for the query');
-      return { articles: [], totalCount };
-    }
-
-    console.log(`Retrieved ${articles.length} articles`);
+    console.log(`Retrieved ${articles?.length || 0} articles`);
     
     // Return the final results
     return {
-      articles: articles as Article[],
+      articles: articles as Article[] || [],
       totalCount
     };
   } catch (error) {
