@@ -45,9 +45,9 @@ export const fetchArticles = async (
     countQuery = applyViewFilters(countQuery, filters);
 
     // Apply search query if provided
-    if (searchQuery) {
+    if (searchQuery && searchQuery.trim() !== '') {
       try {
-        countQuery = applySearchFilter(countQuery, searchQuery);
+        countQuery = applySearchFilter(countQuery, searchQuery.trim());
       } catch (error) {
         console.error('Error applying search filter to count query:', error);
         throw error;
@@ -66,6 +66,12 @@ export const fetchArticles = async (
     }
     
     totalCount = count || 0;
+    console.log('Total count of articles:', totalCount);
+
+    // If no articles match our criteria, return early
+    if (totalCount === 0) {
+      return { articles: [], totalCount: 0 };
+    }
 
     // Build main query to fetch the actual articles with related data
     let query = supabase
@@ -85,9 +91,9 @@ export const fetchArticles = async (
     query = applyViewFilters(query, filters);
 
     // Apply search query if provided
-    if (searchQuery) {
+    if (searchQuery && searchQuery.trim() !== '') {
       try {
-        query = applySearchFilter(query, searchQuery);
+        query = applySearchFilter(query, searchQuery.trim());
       } catch (error) {
         console.error('Error applying search filter to main query:', error);
         throw error;
@@ -111,10 +117,12 @@ export const fetchArticles = async (
       throw error;
     }
     
-    if (!articles) {
-      console.log('No articles found');
-      return { articles: [], totalCount: 0 };
+    if (!articles || articles.length === 0) {
+      console.log('No articles found for query:', searchQuery, 'with filters:', filters);
+      return { articles: [], totalCount };
     }
+
+    console.log(`Retrieved ${articles.length} articles`);
 
     // Additional filtering for protein family if specified
     let filteredArticles = articles;

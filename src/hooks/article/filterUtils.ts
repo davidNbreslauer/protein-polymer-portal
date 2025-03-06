@@ -30,10 +30,11 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
   // First apply the filter for regular text fields
   let filteredQuery = query.or(textFieldsCondition);
   
-  // Then apply array containment checks for each array field
+  // For array fields, use a different approach since the .cs operator doesn't work with LIKE patterns
+  // We need to create individual filters for each array field
   arrayFields.forEach(field => {
-    // Use contains operator for array fields - needs to check if any array element contains the search query
-    filteredQuery = filteredQuery.or(`${field}.cs.{${searchQuery}}`);
+    // Check if any array element contains the search string using PostgreSQL's ANY operator with LIKE
+    filteredQuery = filteredQuery.or(`${field}[*].ilike.%${searchQuery}%`);
   });
   
   return filteredQuery;
