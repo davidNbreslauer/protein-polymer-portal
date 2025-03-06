@@ -19,7 +19,8 @@ export const SearchBar = ({ searchQuery, onSearchChange }: SearchBarProps) => {
   
   // Handle local input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalQuery(e.target.value);
+    const value = e.target.value;
+    setLocalQuery(value);
     setIsTyping(true);
     
     // Pass changes up to parent immediately

@@ -23,16 +23,13 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'language'
     ];
     
-    // Start with building a query for basic text fields only
+    // Build a simple OR condition for basic text fields
     let filteredQuery = query.or(`${textFields[0]}.ilike.%${sanitizedQuery}%`);
     
-    // Add remaining text fields
+    // Add remaining text fields to the OR condition
     for (let i = 1; i < textFields.length; i++) {
       filteredQuery = filteredQuery.or(`${textFields[i]}.ilike.%${sanitizedQuery}%`);
     }
-    
-    // We'll avoid complex array searching in the direct query to prevent SQL parsing errors
-    // Array searches will be handled by post-processing the results in memory if necessary
     
     return filteredQuery;
   } catch (error) {
