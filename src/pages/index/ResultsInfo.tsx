@@ -1,4 +1,3 @@
-
 interface ResultsInfoProps {
   articlesCount: number;
   totalCount: number;
@@ -26,17 +25,9 @@ export const ResultsInfo = ({
     );
   }
 
-  // Add filter description based on review filters
-  let filterDescription = '';
-  if (showReviewsOnly) {
-    filterDescription = ' (reviews only)';
-  } else if (excludeReviews) {
-    filterDescription = ' (excluding reviews)';
-  }
-
   return (
     <div className="text-sm text-gray-500">
-      Showing {articlesCount} article{articlesCount === 1 ? '' : 's'} of {totalCount} total result{totalCount === 1 ? '' : 's'}{filterDescription}
+      Showing {articlesCount} article{articlesCount === 1 ? '' : 's'} of {totalCount} total result{totalCount === 1 ? '' : 's'}
     </div>
   );
 };
