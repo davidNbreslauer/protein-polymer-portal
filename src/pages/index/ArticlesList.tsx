@@ -25,6 +25,9 @@ export const ArticlesList = ({
   onNextPage,
   onPrevPage
 }: ArticlesListProps) => {
+  // Log the articles we're receiving for debugging
+  console.log('ArticlesList received articles:', articles?.length, 'isLoading:', isLoading, 'error:', error);
+  
   if (isLoading) {
     return (
       <div className="text-center py-8">

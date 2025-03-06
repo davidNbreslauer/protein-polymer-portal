@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { FilterOptions, ProteinTypeFilterResult } from "./types";
 
@@ -23,13 +24,19 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'language'
     ];
     
-    // Start with building the OR conditions for text fields
-    let orConditions = textFields.map(field => `${field}.ilike.%${sanitizedQuery}%`).join(',');
+    // Start with building the OR conditions
+    let orConditions = '';
+    
+    // Add text field conditions
+    textFields.forEach((field, index) => {
+      if (index > 0) orConditions += ',';
+      orConditions += `${field}.ilike.%${sanitizedQuery}%`;
+    });
     
     // Apply filters for text fields using the or conditions
     let filteredQuery = query.or(orConditions);
     
-    // Array fields need special handling - we'll use contains operator instead of ilike with type casting
+    // Array fields need special handling
     const arrayFields = [
       'facets_protein_family',
       'facets_protein_form',
@@ -41,10 +48,10 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'facets_protein_subcategories'
     ];
     
-    // For array fields, build separate OR conditions without type casting
+    // For array fields, we need to check if any array element contains the search query
     arrayFields.forEach(field => {
-      // Using contains directly with the array field
-      filteredQuery = filteredQuery.or(`${field}.cs.{${sanitizedQuery}}`);
+      // Create a separate condition for each array field
+      filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
     });
     
     return filteredQuery;

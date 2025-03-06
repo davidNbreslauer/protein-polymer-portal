@@ -59,6 +59,11 @@ export const SearchResults = ({
     }
   }, [error, toast]);
 
+  // Debug log for articles and totalCount
+  useEffect(() => {
+    console.log(`SearchResults received: ${articles?.length} articles, totalCount: ${totalCount}`);
+  }, [articles, totalCount]);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
