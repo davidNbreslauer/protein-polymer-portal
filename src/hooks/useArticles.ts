@@ -64,6 +64,13 @@ const fetchArticles = async (searchQuery: string = '', filters: FilterOptions = 
       countQuery = countQuery.in('id', bookmarkedArticleIds);
     }
 
+    // Apply reviews filter to count query if requested
+    if (filters.showReviewsOnly) {
+      countQuery = countQuery.ilike('publication_type', '%review%');
+    } else if (filters.excludeReviews) {
+      countQuery = countQuery.not('publication_type', 'ilike', '%review%');
+    }
+
     if (searchQuery) {
       countQuery = countQuery.or(`title.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,authors.ilike.%${searchQuery}%,journal.ilike.%${searchQuery}%,summary.ilike.%${searchQuery}%,conclusions.ilike.%${searchQuery}%,publication_type.ilike.%${searchQuery}%,language.ilike.%${searchQuery}%`);
     }
