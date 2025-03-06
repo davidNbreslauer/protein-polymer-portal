@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FilterOptions, ProteinTypeFilterResult } from "./types";
 
@@ -25,19 +24,14 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
     ];
     
     // Start with building a query for text fields
-    let filteredQuery = query;
+    let filteredQuery = query.or(`${textFields[0]}.ilike.%${sanitizedQuery}%`);
     
-    // Create separate or conditions for each field to avoid SQL syntax issues
-    for (let i = 0; i < textFields.length; i++) {
-      const field = textFields[i];
-      if (i === 0) {
-        filteredQuery = filteredQuery.or(`${field}.ilike.%${sanitizedQuery}%`);
-      } else {
-        filteredQuery = filteredQuery.or(`${field}.ilike.%${sanitizedQuery}%`);
-      }
+    // Add remaining text fields
+    for (let i = 1; i < textFields.length; i++) {
+      filteredQuery = filteredQuery.or(`${textFields[i]}.ilike.%${sanitizedQuery}%`);
     }
     
-    // Array fields need special handling - use contains for arrays
+    // Array fields need special handling with appropriate containment queries
     const arrayFields = [
       'facets_protein_family',
       'facets_protein_form',
@@ -49,10 +43,10 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'facets_protein_subcategories'
     ];
     
-    // For array fields, use the contains operator with the array
+    // For array fields, use a query approach that's safer for all field types
     for (const field of arrayFields) {
-      // Use the contains operator which is appropriate for arrays
-      filteredQuery = filteredQuery.or(`${field}.cs.{${sanitizedQuery}}`);
+      // Check for array items containing the search term using to_jsonb casting to avoid parsing issues
+      filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
     }
     
     return filteredQuery;
