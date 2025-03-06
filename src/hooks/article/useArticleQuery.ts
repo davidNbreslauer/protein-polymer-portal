@@ -71,7 +71,12 @@ export const fetchArticles = async (
 
         // Apply search query if provided
         if (searchQuery && searchQuery.trim() !== '') {
-          countQuery = applySearchFilter(countQuery, searchQuery.trim());
+          try {
+            countQuery = applySearchFilter(countQuery, searchQuery.trim());
+          } catch (error) {
+            console.error('Error in search filter:', error);
+            throw new Error(error instanceof Error ? error.message : 'Search query error');
+          }
         }
 
         // Apply date filters if provided
@@ -82,6 +87,14 @@ export const fetchArticles = async (
         
         if (countError) {
           console.error('Error getting count:', countError);
+          
+          // Check if this is a SQL parsing error related to array searches
+          if (countError.message && (
+              countError.message.includes('parse logic tree') || 
+              countError.message.includes('syntax error'))) {
+            throw new Error('Your search contains characters that cannot be processed. Please try a simpler search term.');
+          }
+          
           throw new Error('Failed to count matching articles: ' + (countError.message || 'Unknown error'));
         }
         
@@ -89,8 +102,7 @@ export const fetchArticles = async (
         console.log('Total count of articles:', totalCount);
       } catch (error) {
         console.error('Error counting articles:', error);
-        throw new Error('Failed to count matching articles: ' + 
-          (error instanceof Error ? error.message : 'Unknown error'));
+        throw error; // Pass the error along for consistent handling
       }
     }
 
@@ -119,7 +131,12 @@ export const fetchArticles = async (
 
       // Apply search query if provided
       if (searchQuery && searchQuery.trim() !== '') {
-        query = applySearchFilter(query, searchQuery.trim());
+        try {
+          query = applySearchFilter(query, searchQuery.trim());
+        } catch (error) {
+          console.error('Error in search filter:', error);
+          throw new Error(error instanceof Error ? error.message : 'Search query error');
+        }
       }
 
       // Apply date filters if provided
@@ -136,6 +153,14 @@ export const fetchArticles = async (
       
       if (error) {
         console.error('Error fetching articles:', error);
+        
+        // Check if this is a SQL parsing error related to array searches
+        if (error.message && (
+            error.message.includes('parse logic tree') || 
+            error.message.includes('syntax error'))) {
+          throw new Error('Your search contains characters that cannot be processed. Please try a simpler search term.');
+        }
+        
         throw new Error('Failed to fetch articles: ' + (error.message || 'Unknown error'));
       }
       
@@ -163,8 +188,7 @@ export const fetchArticles = async (
       };
     } catch (error) {
       console.error('Error in article query execution:', error);
-      throw new Error('Failed to fetch articles: ' + 
-        (error instanceof Error ? error.message : 'Unknown error'));
+      throw error; // Pass the error along for consistent handling
     }
   } catch (error) {
     console.error('Error in fetchArticles:', error);

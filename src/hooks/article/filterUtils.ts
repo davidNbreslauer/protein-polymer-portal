@@ -24,19 +24,20 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'language'
     ];
     
-    // Start with building the OR conditions
-    let orConditions = '';
+    // Start with building a query for text fields
+    let filteredQuery = query;
     
-    // Add text field conditions
-    textFields.forEach((field, index) => {
-      if (index > 0) orConditions += ',';
-      orConditions += `${field}.ilike.%${sanitizedQuery}%`;
-    });
+    // Create separate or conditions for each field to avoid SQL syntax issues
+    for (let i = 0; i < textFields.length; i++) {
+      const field = textFields[i];
+      if (i === 0) {
+        filteredQuery = filteredQuery.or(`${field}.ilike.%${sanitizedQuery}%`);
+      } else {
+        filteredQuery = filteredQuery.or(`${field}.ilike.%${sanitizedQuery}%`);
+      }
+    }
     
-    // Apply filters for text fields using the or conditions
-    let filteredQuery = query.or(orConditions);
-    
-    // Array fields need special handling
+    // Array fields need special handling - use contains for arrays
     const arrayFields = [
       'facets_protein_family',
       'facets_protein_form',
@@ -48,11 +49,11 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'facets_protein_subcategories'
     ];
     
-    // For array fields, we need to check if any array element contains the search query
-    arrayFields.forEach(field => {
-      // Create a separate condition for each array field
-      filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
-    });
+    // For array fields, use the contains operator with the array
+    for (const field of arrayFields) {
+      // Use the contains operator which is appropriate for arrays
+      filteredQuery = filteredQuery.or(`${field}.cs.{${sanitizedQuery}}`);
+    }
     
     return filteredQuery;
   } catch (error) {
