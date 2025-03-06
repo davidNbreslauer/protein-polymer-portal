@@ -38,9 +38,18 @@ export const SearchResults = ({
   // Show toast notification for errors
   useEffect(() => {
     if (error) {
-      const errorMessage = error instanceof Error && error.message 
-        ? error.message 
-        : "An error occurred while searching. Please try again.";
+      let errorMessage = 'An error occurred while searching. Please try again.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      // Check for specific SQL parsing errors and provide clearer message
+      if (errorMessage.includes('parse logic tree') || errorMessage.includes('syntax error')) {
+        errorMessage = 'Your search contains characters that cannot be processed. Please try a simpler search term.';
+      }
         
       toast({
         title: "Search error",

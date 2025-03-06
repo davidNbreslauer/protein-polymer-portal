@@ -35,12 +35,12 @@ export const fetchArticles = async (
       return { articles: [], totalCount: 0 };
     }
     
-    // For search queries, try using a database function first if it's just a simple text search
+    // For simple text searches, try using a database function first
     if (searchQuery && searchQuery.trim() !== '' && !filters.proteinCategory?.length && 
         !filters.proteinSubcategory?.length && !filters.proteinFamily?.length && 
         !filters.proteinType?.length && !filters.startDate && !filters.endDate) {
       try {
-        // Using the count_filtered_articles function for simple searches
+        // Using the count_filtered_articles function
         const { data: countData, error: countFnError } = await supabase
           .rpc('count_filtered_articles', { search_query: searchQuery.trim() });
           
@@ -49,48 +49,49 @@ export const fetchArticles = async (
           console.log('Count from function:', totalCount);
         } else {
           console.error('Error using count function:', countFnError);
-          // Continue with the normal approach below if the function call fails
+          // Continue with the normal approach if the function call fails
         }
       } catch (error) {
         console.error('Error calling count function:', error);
-        // Continue with the normal approach below
+        // Continue with the normal approach
       }
     }
     
     // Only do the manual count if we didn't get it from the function
     if (totalCount === 0) {
-      // Build count query to get total number of results
-      let countQuery = supabase.from('articles')
-        .select('id', { count: 'exact', head: true });
+      try {
+        // Build count query to get total number of results
+        let countQuery = supabase.from('articles')
+          .select('id', { count: 'exact', head: true });
 
-      // Apply filters to count query
-      countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);
-      countQuery = applyBookmarkFilter(countQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
-      countQuery = applyViewFilters(countQuery, filters);
+        // Apply filters to count query
+        countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);
+        countQuery = applyBookmarkFilter(countQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
+        countQuery = applyViewFilters(countQuery, filters);
 
-      // Apply search query if provided
-      if (searchQuery && searchQuery.trim() !== '') {
-        try {
+        // Apply search query if provided
+        if (searchQuery && searchQuery.trim() !== '') {
           countQuery = applySearchFilter(countQuery, searchQuery.trim());
-        } catch (error) {
-          console.error('Error applying search filter to count query:', error);
-          throw new Error('Invalid search query. Please try a different search term.');
         }
-      }
 
-      // Apply date filters if provided
-      countQuery = applyDateFilters(countQuery, filters.startDate, filters.endDate);
+        // Apply date filters if provided
+        countQuery = applyDateFilters(countQuery, filters.startDate, filters.endDate);
 
-      // Get total count of matching articles
-      const { count, error: countError } = await countQuery;
-      
-      if (countError) {
-        console.error('Error getting count:', countError);
-        throw new Error('Failed to count matching articles: ' + (countError.message || 'Unknown error'));
+        // Get total count of matching articles
+        const { count, error: countError } = await countQuery;
+        
+        if (countError) {
+          console.error('Error getting count:', countError);
+          throw new Error('Failed to count matching articles: ' + (countError.message || 'Unknown error'));
+        }
+        
+        totalCount = count || 0;
+        console.log('Total count of articles:', totalCount);
+      } catch (error) {
+        console.error('Error counting articles:', error);
+        throw new Error('Failed to count matching articles: ' + 
+          (error instanceof Error ? error.message : 'Unknown error'));
       }
-      
-      totalCount = count || 0;
-      console.log('Total count of articles:', totalCount);
     }
 
     // If no articles match our criteria, return early
@@ -98,72 +99,73 @@ export const fetchArticles = async (
       return { articles: [], totalCount: 0 };
     }
 
-    // Build main query to fetch the actual articles with related data
-    let query = supabase
-      .from('articles')
-      .select(`
-        *,
-        proteins(*),
-        materials(*),
-        methods(*),
-        analysis_techniques(*),
-        results(*)
-      `);
+    try {
+      // Build main query to fetch the actual articles with related data
+      let query = supabase
+        .from('articles')
+        .select(`
+          *,
+          proteins(*),
+          materials(*),
+          methods(*),
+          analysis_techniques(*),
+          results(*)
+        `);
 
-    // Apply same filters to main query as we did to count query
-    query = applyProteinFilters(query, filters, filteredArticleIds);
-    query = applyBookmarkFilter(query, !!filters.showBookmarksOnly, bookmarkedArticleIds);
-    query = applyViewFilters(query, filters);
+      // Apply same filters to main query as we did to count query
+      query = applyProteinFilters(query, filters, filteredArticleIds);
+      query = applyBookmarkFilter(query, !!filters.showBookmarksOnly, bookmarkedArticleIds);
+      query = applyViewFilters(query, filters);
 
-    // Apply search query if provided
-    if (searchQuery && searchQuery.trim() !== '') {
-      try {
+      // Apply search query if provided
+      if (searchQuery && searchQuery.trim() !== '') {
         query = applySearchFilter(query, searchQuery.trim());
-      } catch (error) {
-        console.error('Error applying search filter to main query:', error);
-        throw new Error('Invalid search query. Please try a different search term.');
       }
+
+      // Apply date filters if provided
+      query = applyDateFilters(query, filters.startDate, filters.endDate);
+
+      // Apply sorting
+      query = query.order('pub_date', { ascending: filters.sortDirection === 'asc' });
+
+      // Apply pagination
+      query = query.range(page * pageSize, (page + 1) * pageSize - 1);
+
+      // Execute main query
+      const { data: articles, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching articles:', error);
+        throw new Error('Failed to fetch articles: ' + (error.message || 'Unknown error'));
+      }
+      
+      if (!articles || articles.length === 0) {
+        console.log('No articles found for query:', searchQuery, 'with filters:', filters);
+        return { articles: [], totalCount };
+      }
+
+      console.log(`Retrieved ${articles.length} articles`);
+
+      // Additional filtering for protein family if specified
+      let filteredArticles = articles;
+      
+      if (filters.proteinFamily?.length) {
+        filteredArticles = filteredArticles.filter(article => 
+          article.facets_protein_family?.some(family => 
+            filters.proteinFamily?.includes(family)
+          )
+        );
+      }
+
+      return {
+        articles: filteredArticles as Article[],
+        totalCount
+      };
+    } catch (error) {
+      console.error('Error in article query execution:', error);
+      throw new Error('Failed to fetch articles: ' + 
+        (error instanceof Error ? error.message : 'Unknown error'));
     }
-
-    // Apply date filters if provided
-    query = applyDateFilters(query, filters.startDate, filters.endDate);
-
-    // Apply sorting
-    query = query.order('pub_date', { ascending: filters.sortDirection === 'asc' });
-
-    // Apply pagination
-    query = query.range(page * pageSize, (page + 1) * pageSize - 1);
-
-    // Execute main query
-    const { data: articles, error } = await query;
-    
-    if (error) {
-      console.error('Error fetching articles:', error);
-      throw new Error('Failed to fetch articles: ' + (error.message || 'Unknown error'));
-    }
-    
-    if (!articles || articles.length === 0) {
-      console.log('No articles found for query:', searchQuery, 'with filters:', filters);
-      return { articles: [], totalCount };
-    }
-
-    console.log(`Retrieved ${articles.length} articles`);
-
-    // Additional filtering for protein family if specified
-    let filteredArticles = articles;
-    
-    if (filters.proteinFamily?.length) {
-      filteredArticles = filteredArticles.filter(article => 
-        article.facets_protein_family?.some(family => 
-          filters.proteinFamily?.includes(family)
-        )
-      );
-    }
-
-    return {
-      articles: filteredArticles as Article[],
-      totalCount
-    };
   } catch (error) {
     console.error('Error in fetchArticles:', error);
     // Ensure we're always throwing an Error object with a message

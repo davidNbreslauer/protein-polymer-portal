@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FilterOptions, ProteinTypeFilterResult } from "./types";
 
@@ -24,7 +23,13 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'language'
     ];
     
-    // Array fields that need special handling
+    // Start with building the OR conditions for text fields
+    let orConditions = textFields.map(field => `${field}.ilike.%${sanitizedQuery}%`).join(',');
+    
+    // Apply filters for text fields using the or conditions
+    let filteredQuery = query.or(orConditions);
+    
+    // Array fields need special handling - we'll use contains operator instead of ilike with type casting
     const arrayFields = [
       'facets_protein_family',
       'facets_protein_form',
@@ -36,23 +41,11 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'facets_protein_subcategories'
     ];
     
-    // Start with an empty filter string
-    let filterString = '';
-    
-    // Add all text fields with OR conditions
-    textFields.forEach((field, index) => {
-      if (index > 0) filterString += ',';
-      filterString += `${field}.ilike.%${sanitizedQuery}%`;
+    // For array fields, build separate OR conditions without type casting
+    arrayFields.forEach(field => {
+      // Using contains directly with the array field
+      filteredQuery = filteredQuery.or(`${field}.cs.{${sanitizedQuery}}`);
     });
-    
-    // First apply the filter for regular text fields
-    let filteredQuery = query.or(filterString);
-    
-    // For array fields, convert to text first to avoid syntax errors
-    for (const field of arrayFields) {
-      // This converts the array to text before searching
-      filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
-    }
     
     return filteredQuery;
   } catch (error) {

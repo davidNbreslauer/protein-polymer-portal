@@ -36,9 +36,18 @@ export const ArticlesList = ({
 
   if (error) {
     console.error('Error in ArticlesList:', error);
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Unknown error';
+    let errorMessage = 'Unknown error';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    // Check for specific SQL parsing errors and provide clearer message
+    if (errorMessage.includes('parse logic tree') || errorMessage.includes('syntax error')) {
+      errorMessage = 'Your search contains characters that cannot be processed. Please try a simpler search term.';
+    }
     
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
