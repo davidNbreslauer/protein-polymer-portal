@@ -75,6 +75,8 @@ const Index = () => {
               onNextPage={handleNextPage}
               onPrevPage={handlePrevPage}
               onPageSizeChange={handlePageSizeChange}
+              showReviewsOnly={filters.showReviewsOnly}
+              excludeReviews={filters.excludeReviews}
             />
           </div>
         </div>

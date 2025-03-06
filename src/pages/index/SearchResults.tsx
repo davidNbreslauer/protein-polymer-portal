@@ -14,6 +14,8 @@ interface SearchResultsProps {
   onNextPage: () => void;
   onPrevPage: () => void;
   onPageSizeChange: (value: string) => void;
+  showReviewsOnly?: boolean;
+  excludeReviews?: boolean;
 }
 
 export const SearchResults = ({
@@ -25,7 +27,9 @@ export const SearchResults = ({
   pageSize,
   onNextPage,
   onPrevPage,
-  onPageSizeChange
+  onPageSizeChange,
+  showReviewsOnly,
+  excludeReviews
 }: SearchResultsProps) => {
   return (
     <div className="space-y-4">
@@ -35,6 +39,8 @@ export const SearchResults = ({
           totalCount={totalCount || 0}
           isLoading={isLoading}
           hasError={!!error}
+          showReviewsOnly={showReviewsOnly}
+          excludeReviews={excludeReviews}
         />
         <PageSizeSelector
           pageSize={pageSize}
