@@ -1,3 +1,4 @@
+
 interface ResultsInfoProps {
   articlesCount: number;
   totalCount: number;
@@ -20,7 +21,7 @@ export const ResultsInfo = ({
   if (articlesCount === 0) {
     return (
       <div className="text-sm text-gray-500">
-        No articles found matching your criteria.
+        No articles found matching your criteria. Try adjusting your search terms or filters.
       </div>
     );
   }

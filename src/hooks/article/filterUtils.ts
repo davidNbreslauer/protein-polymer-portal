@@ -32,8 +32,8 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
   
   // Then apply array containment checks for each array field
   arrayFields.forEach(field => {
-    // This creates a condition like: articles.facets_protein_family.cs.{%searchQuery%}
-    filteredQuery = filteredQuery.or(`${field}.cs.{%${searchQuery}%}`);
+    // Use contains operator for array fields - needs to check if any array element contains the search query
+    filteredQuery = filteredQuery.or(`${field}.cs.{${searchQuery}}`);
   });
   
   return filteredQuery;
