@@ -37,7 +37,7 @@ export const fetchArticles = async (
     
     // Build count query to get total number of results
     let countQuery = supabase.from('articles')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true });
 
     // Apply filters to count query
     countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);

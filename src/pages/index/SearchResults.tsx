@@ -3,6 +3,8 @@ import { ResultsInfo } from "./ResultsInfo";
 import { PageSizeSelector } from "./PageSizeSelector";
 import { ArticlesList } from "./ArticlesList";
 import { Article } from "@/types/article";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface SearchResultsProps {
   articles: Article[];
@@ -31,6 +33,19 @@ export const SearchResults = ({
   showReviewsOnly,
   excludeReviews
 }: SearchResultsProps) => {
+  const { toast } = useToast();
+  
+  // Show toast notification for errors
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Search error",
+        description: "There was a problem with your search. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -42,10 +57,12 @@ export const SearchResults = ({
           showReviewsOnly={showReviewsOnly}
           excludeReviews={excludeReviews}
         />
-        <PageSizeSelector
-          pageSize={pageSize}
-          onPageSizeChange={onPageSizeChange}
-        />
+        {!isLoading && !error && articles?.length > 0 && (
+          <PageSizeSelector
+            pageSize={pageSize}
+            onPageSizeChange={onPageSizeChange}
+          />
+        )}
       </div>
 
       <ArticlesList

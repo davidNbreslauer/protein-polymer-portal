@@ -16,7 +16,21 @@ export const ResultsInfo = ({
   showReviewsOnly,
   excludeReviews
 }: ResultsInfoProps) => {
-  if (isLoading || hasError) return null;
+  if (isLoading) {
+    return (
+      <div className="text-sm text-gray-500">
+        Searching articles...
+      </div>
+    );
+  }
+  
+  if (hasError) {
+    return (
+      <div className="text-sm text-red-500">
+        There was an error fetching articles. Please try again.
+      </div>
+    );
+  }
   
   if (articlesCount === 0) {
     return (
@@ -29,6 +43,8 @@ export const ResultsInfo = ({
   return (
     <div className="text-sm text-gray-500">
       Showing {articlesCount} article{articlesCount === 1 ? '' : 's'} of {totalCount} total result{totalCount === 1 ? '' : 's'}
+      {showReviewsOnly && " (Reviews only)"}
+      {excludeReviews && " (Excluding reviews)"}
     </div>
   );
 };

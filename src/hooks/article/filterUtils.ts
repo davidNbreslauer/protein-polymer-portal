@@ -4,6 +4,13 @@ import { FilterOptions, ProteinTypeFilterResult } from "./types";
 
 // Apply search filter across multiple fields
 export const applySearchFilter = (query: any, searchQuery: string) => {
+  if (!searchQuery || searchQuery.trim() === '') {
+    return query;
+  }
+
+  const sanitizedQuery = searchQuery.trim();
+  console.log('Applying search filter with query:', sanitizedQuery);
+  
   // Add array fields with special handling
   const arrayFields = [
     'facets_protein_family',
@@ -17,25 +24,24 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
   ];
   
   // Build the OR condition for text fields (non-array fields)
-  let textFieldsCondition = 
-    `title.ilike.%${searchQuery}%,` +
-    `abstract.ilike.%${searchQuery}%,` +
-    `authors.ilike.%${searchQuery}%,` +
-    `journal.ilike.%${searchQuery}%,` +
-    `summary.ilike.%${searchQuery}%,` + 
-    `conclusions.ilike.%${searchQuery}%,` +
-    `publication_type.ilike.%${searchQuery}%,` +
-    `language.ilike.%${searchQuery}%`;
+  const textFieldsCondition = 
+    `title.ilike.%${sanitizedQuery}%,` +
+    `abstract.ilike.%${sanitizedQuery}%,` +
+    `authors.ilike.%${sanitizedQuery}%,` +
+    `journal.ilike.%${sanitizedQuery}%,` +
+    `summary.ilike.%${sanitizedQuery}%,` + 
+    `conclusions.ilike.%${sanitizedQuery}%,` +
+    `publication_type.ilike.%${sanitizedQuery}%,` +
+    `language.ilike.%${sanitizedQuery}%`;
   
   // First apply the filter for regular text fields
   let filteredQuery = query.or(textFieldsCondition);
   
-  // For array fields, use a different approach since the .cs operator doesn't work with LIKE patterns
-  // We need to create individual filters for each array field
-  arrayFields.forEach(field => {
-    // Check if any array element contains the search string using PostgreSQL's ANY operator with LIKE
-    filteredQuery = filteredQuery.or(`${field}[*].ilike.%${searchQuery}%`);
-  });
+  // For array fields, we need a different approach
+  for (const field of arrayFields) {
+    // Check if any array element contains the search string
+    filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
+  }
   
   return filteredQuery;
 };
@@ -78,10 +84,15 @@ export const getProteinTypeFilteredIds = async (filters: FilterOptions): Promise
     return { filteredArticleIds: [], shouldReturn: false };
   }
   
-  const { data: proteinData } = await supabase
+  const { data: proteinData, error } = await supabase
     .from('proteins')
     .select('article_id')
     .in('type', filters.proteinType);
+  
+  if (error) {
+    console.error('Error fetching protein type data:', error);
+    throw error;
+  }
   
   const filteredArticleIds = (proteinData || []).map(item => item.article_id);
   

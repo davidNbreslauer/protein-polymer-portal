@@ -2,6 +2,7 @@
 import { ArticleCard } from "@/components/ArticleCard";
 import type { Article } from "@/types/article";
 import { Pagination } from "./Pagination";
+import { AlertTriangle } from "lucide-react";
 
 interface ArticlesListProps {
   articles: Article[];
@@ -34,9 +35,28 @@ export const ArticlesList = ({
   }
 
   if (error) {
+    console.error('Error in ArticlesList:', error);
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
-        Error loading articles. Please try again later.
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+        <AlertTriangle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+        <div>
+          <h3 className="text-red-800 font-medium">Error loading articles</h3>
+          <p className="text-red-600 text-sm mt-1">
+            Please try again later or refine your search criteria.
+          </p>
+          <p className="text-xs mt-2 text-red-400">
+            Technical details: {error instanceof Error ? error.message : 'Unknown error'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (articles.length === 0) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+        <p className="text-gray-600">No articles found matching your criteria.</p>
+        <p className="text-gray-500 text-sm mt-2">Try adjusting your search terms or filters.</p>
       </div>
     );
   }
