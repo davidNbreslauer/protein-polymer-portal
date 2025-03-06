@@ -23,7 +23,7 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       'language'
     ];
     
-    // Start with building a query for text fields
+    // Start with building a query for basic text fields only
     let filteredQuery = query.or(`${textFields[0]}.ilike.%${sanitizedQuery}%`);
     
     // Add remaining text fields
@@ -31,23 +31,8 @@ export const applySearchFilter = (query: any, searchQuery: string) => {
       filteredQuery = filteredQuery.or(`${textFields[i]}.ilike.%${sanitizedQuery}%`);
     }
     
-    // Array fields need special handling with appropriate containment queries
-    const arrayFields = [
-      'facets_protein_family',
-      'facets_protein_form',
-      'facets_expression_system',
-      'facets_application',
-      'facets_structural_motifs',
-      'facets_tested_properties',
-      'facets_protein_categories',
-      'facets_protein_subcategories'
-    ];
-    
-    // For array fields, use a query approach that's safer for all field types
-    for (const field of arrayFields) {
-      // Check for array items containing the search term using to_jsonb casting to avoid parsing issues
-      filteredQuery = filteredQuery.or(`${field}::text.ilike.%${sanitizedQuery}%`);
-    }
+    // We'll avoid complex array searching in the direct query to prevent SQL parsing errors
+    // Array searches will be handled by post-processing the results in memory if necessary
     
     return filteredQuery;
   } catch (error) {

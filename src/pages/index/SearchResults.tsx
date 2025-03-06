@@ -46,9 +46,11 @@ export const SearchResults = ({
         errorMessage = error;
       }
       
-      // Check for specific SQL parsing errors and provide clearer message
-      if (errorMessage.includes('parse logic tree') || errorMessage.includes('syntax error')) {
-        errorMessage = 'Your search contains characters that cannot be processed. Please try a simpler search term.';
+      // Check for specific errors and provide clearer message
+      if (errorMessage.includes('parse logic tree') || 
+          errorMessage.includes('syntax error') ||
+          errorMessage.includes('cannot be processed')) {
+        errorMessage = 'Your search contains characters that cannot be processed. Try using a simpler search term.';
       }
         
       toast({

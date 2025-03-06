@@ -35,74 +35,63 @@ export const fetchArticles = async (
       return { articles: [], totalCount: 0 };
     }
     
-    // For simple text searches, try using a database function first
-    if (searchQuery && searchQuery.trim() !== '' && !filters.proteinCategory?.length && 
-        !filters.proteinSubcategory?.length && !filters.proteinFamily?.length && 
-        !filters.proteinType?.length && !filters.startDate && !filters.endDate) {
+    // For search queries, first try to retrieve a pre-counted result if available
+    if (searchQuery && searchQuery.trim() !== '') {
       try {
-        // Using the count_filtered_articles function
-        const { data: countData, error: countFnError } = await supabase
-          .rpc('count_filtered_articles', { search_query: searchQuery.trim() });
-          
-        if (!countFnError && countData !== null) {
-          totalCount = countData;
-          console.log('Count from function:', totalCount);
-        } else {
-          console.error('Error using count function:', countFnError);
-          // Continue with the normal approach if the function call fails
-        }
-      } catch (error) {
-        console.error('Error calling count function:', error);
-        // Continue with the normal approach
-      }
-    }
-    
-    // Only do the manual count if we didn't get it from the function
-    if (totalCount === 0) {
-      try {
-        // Build count query to get total number of results
+        // Use our basic text search first to see how many results we'd get
         let countQuery = supabase.from('articles')
           .select('id', { count: 'exact', head: true });
 
-        // Apply filters to count query
+        // Apply filters
         countQuery = applyProteinFilters(countQuery, filters, filteredArticleIds);
         countQuery = applyBookmarkFilter(countQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
         countQuery = applyViewFilters(countQuery, filters);
-
-        // Apply search query if provided
-        if (searchQuery && searchQuery.trim() !== '') {
-          try {
-            countQuery = applySearchFilter(countQuery, searchQuery.trim());
-          } catch (error) {
-            console.error('Error in search filter:', error);
-            throw new Error(error instanceof Error ? error.message : 'Search query error');
-          }
-        }
-
-        // Apply date filters if provided
         countQuery = applyDateFilters(countQuery, filters.startDate, filters.endDate);
 
-        // Get total count of matching articles
-        const { count, error: countError } = await countQuery;
-        
-        if (countError) {
-          console.error('Error getting count:', countError);
+        // Apply basic search on text fields
+        try {
+          countQuery = applySearchFilter(countQuery, searchQuery.trim());
+          const { count, error: countError } = await countQuery;
           
-          // Check if this is a SQL parsing error related to array searches
-          if (countError.message && (
-              countError.message.includes('parse logic tree') || 
-              countError.message.includes('syntax error'))) {
-            throw new Error('Your search contains characters that cannot be processed. Please try a simpler search term.');
+          if (!countError) {
+            totalCount = count || 0;
+            console.log('Total count of matching articles:', totalCount);
+          } else {
+            console.error('Error getting count:', countError);
+            // We'll try an alternative search approach instead of throwing
           }
-          
-          throw new Error('Failed to count matching articles: ' + (countError.message || 'Unknown error'));
+        } catch (error) {
+          console.error('Error in search filter count:', error);
+          // Continue with fallback approach
         }
-        
-        totalCount = count || 0;
-        console.log('Total count of articles:', totalCount);
       } catch (error) {
         console.error('Error counting articles:', error);
-        throw error; // Pass the error along for consistent handling
+        // Continue with fallback
+      }
+    }
+
+    // If we haven't set totalCount yet, try a basic count without search filters
+    if (totalCount === 0) {
+      try {
+        let basicCountQuery = supabase.from('articles')
+          .select('id', { count: 'exact', head: true });
+        
+        // Apply non-search filters
+        basicCountQuery = applyProteinFilters(basicCountQuery, filters, filteredArticleIds);
+        basicCountQuery = applyBookmarkFilter(basicCountQuery, !!filters.showBookmarksOnly, bookmarkedArticleIds);
+        basicCountQuery = applyViewFilters(basicCountQuery, filters);
+        basicCountQuery = applyDateFilters(basicCountQuery, filters.startDate, filters.endDate);
+        
+        const { count, error: basicCountError } = await basicCountQuery;
+        
+        if (!basicCountError) {
+          totalCount = count || 0;
+          console.log('Basic count of matching articles:', totalCount);
+        } else {
+          console.error('Error getting basic count:', basicCountError);
+        }
+      } catch (error) {
+        console.error('Error in basic count:', error);
       }
     }
 
@@ -112,7 +101,7 @@ export const fetchArticles = async (
     }
 
     try {
-      // Build main query to fetch the actual articles with related data
+      // Build main query to fetch articles
       let query = supabase
         .from('articles')
         .select(`
@@ -124,23 +113,22 @@ export const fetchArticles = async (
           results(*)
         `);
 
-      // Apply same filters to main query as we did to count query
+      // Apply non-search filters
       query = applyProteinFilters(query, filters, filteredArticleIds);
       query = applyBookmarkFilter(query, !!filters.showBookmarksOnly, bookmarkedArticleIds);
       query = applyViewFilters(query, filters);
+      query = applyDateFilters(query, filters.startDate, filters.endDate);
 
-      // Apply search query if provided
+      // Apply search if specified - with error handling
       if (searchQuery && searchQuery.trim() !== '') {
         try {
           query = applySearchFilter(query, searchQuery.trim());
         } catch (error) {
-          console.error('Error in search filter:', error);
-          throw new Error(error instanceof Error ? error.message : 'Search query error');
+          console.error('Error applying search filter:', error);
+          // Return empty results rather than a broken query
+          return { articles: [], totalCount: 0 };
         }
       }
-
-      // Apply date filters if provided
-      query = applyDateFilters(query, filters.startDate, filters.endDate);
 
       // Apply sorting
       query = query.order('pub_date', { ascending: filters.sortDirection === 'asc' });
@@ -153,27 +141,51 @@ export const fetchArticles = async (
       
       if (error) {
         console.error('Error fetching articles:', error);
-        
-        // Check if this is a SQL parsing error related to array searches
-        if (error.message && (
-            error.message.includes('parse logic tree') || 
-            error.message.includes('syntax error'))) {
-          throw new Error('Your search contains characters that cannot be processed. Please try a simpler search term.');
-        }
-        
         throw new Error('Failed to fetch articles: ' + (error.message || 'Unknown error'));
       }
       
       if (!articles || articles.length === 0) {
-        console.log('No articles found for query:', searchQuery, 'with filters:', filters);
+        console.log('No articles found for the query');
         return { articles: [], totalCount };
       }
 
       console.log(`Retrieved ${articles.length} articles`);
 
-      // Additional filtering for protein family if specified
+      // If we have a search query, perform additional in-memory filtering for array fields
       let filteredArticles = articles;
       
+      if (searchQuery && searchQuery.trim() !== '') {
+        const lowerSearchQuery = searchQuery.trim().toLowerCase();
+        const arrayFields = [
+          'facets_protein_family',
+          'facets_protein_form',
+          'facets_expression_system',
+          'facets_application',
+          'facets_structural_motifs',
+          'facets_tested_properties',
+          'facets_protein_categories',
+          'facets_protein_subcategories'
+        ];
+        
+        // Additional in-memory filtering for array fields
+        filteredArticles = filteredArticles.filter(article => {
+          // Check if any array field contains the search query
+          return arrayFields.some(field => {
+            const arrayValue = article[field];
+            if (!arrayValue || !Array.isArray(arrayValue)) return false;
+            
+            // Search within the array items
+            return arrayValue.some(item => {
+              if (typeof item === 'string') {
+                return item.toLowerCase().includes(lowerSearchQuery);
+              }
+              return false;
+            });
+          });
+        });
+      }
+
+      // Handle protein family filter in memory if needed
       if (filters.proteinFamily?.length) {
         filteredArticles = filteredArticles.filter(article => 
           article.facets_protein_family?.some(family => 
@@ -188,11 +200,10 @@ export const fetchArticles = async (
       };
     } catch (error) {
       console.error('Error in article query execution:', error);
-      throw error; // Pass the error along for consistent handling
+      throw error;
     }
   } catch (error) {
     console.error('Error in fetchArticles:', error);
-    // Ensure we're always throwing an Error object with a message
     if (error instanceof Error) {
       throw error;
     } else {
